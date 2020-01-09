@@ -4,20 +4,22 @@ library("stringr")
 library(tableHTML)
 
 #Main
-source("Reader.R")
-source("Played.R")
-source("Wins.R")
-source("Entries.R")
-source("Timespan.R")
-source("Season.R")
-source("CounterSeason.R")
 source("Age.R")
-source("Counter.R")
 source("AverageAge.R")
-source("Percentage.R")
-source("Same.R")
-source("Ranking.R")
+source("Counter.R")
+source("CounterSeason.R")
+source("Entries.R")
 source("Example.R")
+source("Ranking.R")
+source("Reader.R")
+source("Percentage.R")
+source("Played.R")
+source("Same.R")
+source("Season.R")
+source("Wins.R")
+source("Timespan.R")
+
+
 source("Player.R")
 
 #Read database from csv
@@ -27,7 +29,7 @@ category <- "G"
 surface <- "Hard"
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-#if(FALSE){
+if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -232,7 +234,7 @@ for (i in 1:length(round))
 
 #stat <- LowestRankingRound('QF')
 
-#}
+}
 #############################################################################################################################################################################
 
 #stat <-PlayedPlayer('Andre Agassi', '2000')
@@ -243,5 +245,8 @@ for (i in 1:length(round))
 #write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
+stat <- SameSurfaceRound('W')
+write_tableHTML(tableHTML(stat), file = 'Test.html')
 
+#stat <-PlayerStats('Guillermo Vilas')
 #write_tableHTML(tableHTML(stat), file = 'Test.html')

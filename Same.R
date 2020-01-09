@@ -148,21 +148,21 @@ SameSurfaceRound <- function(stage) {
   same <- same[order(-same$N),] 
   
   #select first 20
-  same <- same[1:20,]
+  same <- same[1:100,]
   
   print(same)
   
 }
 
 removeTeamEvents <- function(db) {
+  
   ind_Dusseldorf <- grep("^World Team Cup", db$tourney_name)
   if (length(ind_Dusseldorf)>0)
     db <- db[-ind_Dusseldorf, ]
   
-  ind_davis <- grep("^Davis", db$tourney_name)
+  ind_davis <- grep("^Davis Cup", db$tourney_name)
   if (length(ind_davis)>0)
     db <- db[-ind_davis, ]
-  
   
   ind_Laver <- grep("^Laver Cup", db$tourney_name)
   if (length(ind_Laver)>0)
@@ -171,6 +171,8 @@ removeTeamEvents <- function(db) {
   ind_Nations_Cup <- grep("^Nations Cup", db$tourney_name)
   if (length(ind_Nations_Cup)>0)
     db <- db[-ind_Nations_Cup, ]
+  
+   return(db)
 }
 
 
