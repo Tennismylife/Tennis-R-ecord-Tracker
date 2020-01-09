@@ -83,8 +83,6 @@ SameTournamentEntries <- function(stage) {
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
   
-  print(res)
-  
   same <- res[, .N, by = list(res$name, res$tournament)]
   
   ## order by decreasing age

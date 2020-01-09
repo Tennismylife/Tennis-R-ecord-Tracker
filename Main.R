@@ -219,7 +219,7 @@ for (i in 1:length(round))
 }
 
 
-#stat <- SameTournamentEntries('0')
+stat <- SameTournamentEntries('0')
 
 ##################################################################################### SEASON #####################################################################################
 #stat <- WinsSeason()
@@ -244,9 +244,5 @@ for (i in 1:length(round))
 #stat <-PlayerStats('Andre Agassi')
 #write_tableHTML(tableHTML(stat), file = 'Test.html')
 
-
-stat <- SameSurfaceRound('W')
-write_tableHTML(tableHTML(stat), file = 'Test.html')
-
-#stat <-PlayerStats('Guillermo Vilas')
-#write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <- SameTournamentEntries('0')
+write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentEntries.html"))
