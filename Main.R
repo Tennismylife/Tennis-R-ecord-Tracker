@@ -220,6 +220,7 @@ for (i in 1:length(round))
 
 
 stat <- SameTournamentEntries('0')
+write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentEntries.html"))
 
 ##################################################################################### SEASON #####################################################################################
 #stat <- WinsSeason()
