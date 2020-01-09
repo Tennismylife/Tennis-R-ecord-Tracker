@@ -4,7 +4,7 @@ library(data.table)
 library(dplyr)
 library(plyr)
 
-file="C:/Users/Andrea/git/repository/ATPStats/newdb3.csv"
+file="C:/Users/Andrea/Documents/GitHub/ATP-Tennis-Record/Java/ATPStats/newdb3.csv"
 
 #Function to read all database from csv
 ReadData <- function(file) {

@@ -204,6 +204,12 @@ stat <- SameTournamentRound(round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentRound",round[i],".html"))
 }
 
+for (i in 1:length(round)) 
+{
+  stat <- SameSurfaceRound(round[i])
+  write_tableHTML(tableHTML(stat), file = paste("Data/SameSurface/SameSurfaceRound",round[i],".html"))
+}
+
 #stat <- SameTournamentEntries('0')
 
 ##################################################################################### SEASON #####################################################################################
@@ -222,13 +228,18 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 }
 #############################################################################################################################################################################
 
-stat <-PlayedPlayer('Andre Agassi', '2000')
+#stat <-PlayedPlayer('Andre Agassi', '2000')
 #write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
-stat <-PlayerStats('Andre Agassi')
+#stat <-PlayerStats('Andre Agassi')
 #write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
-stat <- CountRoundSeason()
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+for (i in 1:length(round)) 
+{
+  stat <- SameSurfaceRound(round[i])
+  write_tableHTML(tableHTML(stat), file = paste("Data/SameSurface/SameSurfaceRound",round[i],".html"))
+}
+
+#write_tableHTML(tableHTML(stat), file = 'Test.html')
