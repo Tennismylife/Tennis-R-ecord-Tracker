@@ -222,11 +222,11 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 }
 #############################################################################################################################################################################
 
-#stat <-PlayedPlayer('Andre Agassi', '2000')
+stat <-PlayedPlayer('Andre Agassi', '2000')
 #write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
-#stat <-PlayerStats('Andre Agassi')
+stat <-PlayerStats('Andre Agassi')
 #write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
