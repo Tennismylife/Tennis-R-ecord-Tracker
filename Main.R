@@ -224,6 +224,14 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 
 stat <-SameSurfaceEntries()
 write_tableHTML(tableHTML(stat), file = 'Data/SameSurface/SameSurfaceEntries.html')
+
+stat <-PercentageSameSurface()
+write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSurface.html')
+
+stat <-PercentageSameTour()
+write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html')
+
+
 ##################################################################################### SEASON #####################################################################################
 #stat <- WinsSeason()
 
@@ -240,8 +248,8 @@ write_tableHTML(tableHTML(stat), file = 'Data/SameSurface/SameSurfaceEntries.htm
 }
 #############################################################################################################################################################################
 
-stat <-PercentageSameSurface()
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <-PercentageSameTour()
+write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html')
 
 
 

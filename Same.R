@@ -198,6 +198,10 @@ removeTeamEvents <- function(db) {
   if (length(ind_Dusseldorf)>0)
     db <- db[-ind_Dusseldorf, ]
   
+  ind_Dusseldorf <- grep("^World Team Championship", db$tourney_name)
+  if (length(ind_Dusseldorf)>0)
+    db <- db[-ind_Dusseldorf, ]
+  
   ind_davis <- grep("^Davis Cup", db$tourney_name)
   if (length(ind_davis)>0)
     db <- db[-ind_davis, ]
