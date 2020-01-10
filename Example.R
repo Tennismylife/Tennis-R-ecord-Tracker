@@ -201,23 +201,23 @@ out <- out[1:20,]
 print(out)
 }
 
+##################################################################### Percentage As Number 1 ###########################################################################
 
 PercentageAsNumber1 <- function() {
   dbm <- db
   
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)" & !dbm$score=="ABN"]
   
-  dbm <- dbm[(winner_name == 'Novak Djokovic' & winner_rank == '1') | (winner_name == 'Rafael Nadal' & winner_rank == '1') | (winner_name == 'Roger Federer' & winner_rank == '1') | (loser_name == 'Novak Djokovic' & loser_rank == '1') | (loser_name == 'Rafael Nadal' & loser_rank == '1') | (loser_name == 'Roger Federer' & loser_rank == '1')]
-  
-  #dbm <- dbm[winner_rank == '1' | loser_rank =='1']
-  
   dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 0 ,4)
   #dbm <- dbm[tourney_id == year]
   
   ## wins
-  wins <- dbm[,.N, by=winner_name]
+  dbm1 <- dbm[winner_rank =='1']
+  wins <- dbm1[,.N, by=winner_name]
+  
   ## losses
-  losses <- dbm[,.N, by= loser_name]
+  dbm1 <- dbm[loser_rank =='1']
+  losses <- dbm1[,.N, by=loser_name]
   
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
@@ -235,8 +235,8 @@ PercentageAsNumber1 <- function() {
   res <- res[, percentage:=wins/played]
   
   ## order by decreasing total matches
-  setorder(res, -played)
+  setorder(res, -percentage)
   #res <- res[1:1,]
   print(res)
-  
+
 }

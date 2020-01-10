@@ -238,7 +238,7 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 }
 #############################################################################################################################################################################
 
-stat <-PlayedPlayer()
+stat <-PercentageAsNumber1()
 write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
