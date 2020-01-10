@@ -248,7 +248,7 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html
 }
 #############################################################################################################################################################################
 
-stat <-PercentageSameTour()
+stat <- WinsAgainstNumber1()
 write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html')
 
 

@@ -240,3 +240,24 @@ PercentageAsNumber1 <- function() {
   print(res)
 
 }
+
+##################################################################### Wins Against #1 ###########################################################################
+
+WinsAgainstNumber1 <- function() {
+  dbm <- db
+  
+  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)" & !dbm$score=="ABN"]
+  
+  ## ranking #1
+  dbm <- dbm[loser_rank =='1']
+  
+  print(dbm)
+  
+  losses <- dbm[,.N, by=winner_name]
+  
+  ## order by decreasing total matches
+  setorder(losses, -N)
+  losses <- losses[1:1,]
+  print(losses)
+  
+}
