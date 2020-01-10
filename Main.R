@@ -240,8 +240,8 @@ write_tableHTML(tableHTML(stat), file = 'Data/SameSurface/SameSurfaceEntries.htm
 }
 #############################################################################################################################################################################
 
-stat <-SameSurfaceEntries()
-write_tableHTML(tableHTML(stat), file = 'Data/SameSurface/SameSurfaceEntries.html')
+stat <-PercentageSameSurface()
+write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
 

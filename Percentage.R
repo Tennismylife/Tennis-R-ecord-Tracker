@@ -153,3 +153,50 @@ PercentageTour <- function(tour) {
   res <- res[1:100,]
   print(res)
 }
+
+
+
+PercentageSameSurface <- function() {
+  
+  dbm <- db
+  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+  
+  ## wins
+  wins <- dbm[,.N, by=list(winner_name, surface)]
+  
+  ## losses
+  losses <- dbm[,.N, by=list(loser_name, surface)]
+  
+  ## common name to merge with
+  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[3] <- "wins"
+  names(losses)[3] <- "losses"
+  
+  
+  print(wins)
+  print(losses)
+  ## merge the tables by "name"
+  res <- merge(wins, losses, by = c("name", "surface"), allow.cartesian=TRUE)
+  
+  print(res)
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  ## sum the wins and losses into a new column played
+  res <- res[, played:=wins+losses]
+  
+  ## calculate winning percentage
+  res <- res[played > 50]
+  
+  res <- res[, percentage:=wins/played*100]
+  
+  res$percentage <- substr(res$percentage, 0, 5)
+  res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
+  
+  ## order by decreasing total matches
+  setorder(res, -percentage)
+  res <- res[1:100,]
+  print(res)
+  
+}
