@@ -145,7 +145,7 @@ SameSurfaceRound <- function(stage) {
   ## order by decreasing number
   same <- same[order(-same$N),] 
   
-  #select first 20
+  #select first 100
   same <- same[1:100,]
   
   print(same)

@@ -238,12 +238,8 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 }
 #############################################################################################################################################################################
 
-#stat <-PlayedPlayer('Andre Agassi', '2000')
-#write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <-PlayedPlayer()
+write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
-#stat <-PlayerStats('Andre Agassi')
-#write_tableHTML(tableHTML(stat), file = 'Test.html')
 
-stat <- SameTournamentEntries('0')
-write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentEntries.html"))

@@ -127,13 +127,17 @@ PlayedTour <- function(tournament, tournament2, tournament3) {
 
 
 
-PlayedPlayer <- function(player, year) {
+PlayedPlayer <- function() {
   dbm <- db
   
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)" & !dbm$score=="ABN"]
-  dbm <- dbm[winner_name == player | loser_name == player]
+  
+  dbm <- dbm[(winner_name == 'Novak Djokovic' & winner_rank == '1') | (winner_name == 'Rafael Nadal' & winner_rank == '1') | (winner_name == 'Roger Federer' & winner_rank == '1') | (loser_name == 'Novak Djokovic' & loser_rank == '1') | (loser_name == 'Rafael Nadal' & loser_rank == '1') | (loser_name == 'Roger Federer' & loser_rank == '1')]
+
+  #dbm <- dbm[winner_rank == '1' | loser_rank =='1']
+  
   dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 0 ,4)
-  dbm <- dbm[tourney_id == year]
+  #dbm <- dbm[tourney_id == year]
 
   ## wins
   wins <- dbm[,.N, by=winner_name]
@@ -153,11 +157,10 @@ PlayedPlayer <- function(player, year) {
   
   ## sum the wins and losses into a new column played
   res <- res[, played:=wins+losses]
-  res <- res[, percetage:=wins/played]
+  res <- res[, percentage:=wins/played]
 
   ## order by decreasing total matches
   setorder(res, -played)
   #res <- res[1:1,]
-  print(year)
   print(res)
 }
