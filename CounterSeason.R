@@ -8,7 +8,7 @@ CountRoundSeason <- function() {
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   
   ##SelectRound
-  dbm <- dbm[round == 'R16']
+  dbm <- dbm[round == 'QF']
   
 
   #dbm <- dbm[winner_ioc =='ITA']

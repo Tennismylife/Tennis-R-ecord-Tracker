@@ -222,6 +222,8 @@ for (i in 1:length(round))
 stat <- SameTournamentEntries('0')
 write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentEntries.html"))
 
+stat <-SameSurfaceEntries()
+write_tableHTML(tableHTML(stat), file = 'Data/SameSurface/SameSurfaceEntries.html')
 ##################################################################################### SEASON #####################################################################################
 #stat <- WinsSeason()
 
@@ -238,8 +240,8 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 }
 #############################################################################################################################################################################
 
-stat <-PercentageAsNumber1()
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <-SameSurfaceEntries()
+write_tableHTML(tableHTML(stat), file = 'Data/SameSurface/SameSurfaceEntries.html')
 
 
 

@@ -99,6 +99,46 @@ SameTournamentEntries <- function(stage) {
   
 }
 
+
+SameSurfaceEntries <- function() {
+  db <- removeTeamEvents(db)
+  
+  #tournaments won
+  wins <- unique(db[,c('winner_name','tourney_name','tourney_date', 'surface')])
+  wins <- dplyr::distinct(wins)
+  
+  #tournaments lost
+  losses <- unique(db[,c('loser_name','tourney_name','tourney_date', 'surface')])
+  losses <- dplyr::distinct(losses)
+  
+  ## common name to merge with
+  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[2] <- names(losses)[2] <- "tournament"
+  names(wins)[3] <- names(losses)[3] <- "date"
+  
+  ## merge the tables by "name"
+  res <- merge(wins, losses, all = TRUE, allow.cartesian=TRUE)
+  #res <- dplyr::distinct(res)
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  same <- res[, .N, by = list(res$name, res$surface)]
+  
+  ## order by decreasing age
+  same <- same[order(-N)] 
+  
+  names(same)[1] <- "Player"
+  names(same)[2] <- "Tournament"
+  names(same)[3] <- "N"
+  
+  #select first 20
+  same <- same[1:20,]
+  
+  print(same)
+  
+}
+
 SameSurfaceRound <- function(stage) {
   db <- removeTeamEvents(db)
   
@@ -169,6 +209,10 @@ removeTeamEvents <- function(db) {
   ind_Nations_Cup <- grep("^Nations Cup", db$tourney_name)
   if (length(ind_Nations_Cup)>0)
     db <- db[-ind_Nations_Cup, ]
+  
+  ind_ATP_Cup <- grep("^ATP Cup", db$tourney_name)
+  if (length(ind_ATP_Cup)>0)
+    db <- db[-ind_ATP_Cup, ]
   
    return(db)
 }
