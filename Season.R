@@ -96,32 +96,3 @@ SameSeasonRound <- function(stage) {
   
   print(season)
 }
-
-
-
-titlesSeason <- function() {
-  dbm <- db
-  
-  ## drop walkover matches (not countable)
-  dbm <- dbm[!dbm$score=="W/O",]
-  
-  ## drop walkover matches (not countable)
-  dbm <- dbm[round == 'F']
-  
-  wins <- dbm[,c('winner_name','tourney_id')]
-  
-  #extract year from tourney_date
-  wins$tourney_id <- stringr::str_sub(wins$tourney_id, 0 ,4)
-  
-  names(wins)[2] <- "year"
-  
-  season <- wins[, .N, by = list(wins$winner_name, wins$year)]
-  
-  ## order by decreasing age
-  season <- season[order(-N)] 
-  
-  #select 1st 20
-  season <- season[1:20,]
-  
-  print(season)
-}

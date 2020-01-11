@@ -231,11 +231,15 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html
 
 
 ##################################################################################### SEASON #####################################################################################
-#stat <- WinsSeason()
+for (i in 1:length(round)) 
+{
+  stat <- SameSeasonRound(round[i])
+  write_tableHTML(tableHTML(stat), file = paste("Data/SameSeason/SameSeasonRound",round[i],".html"))
+}
+
+stat <- EntriesSeason()
 
 #stat <- titlesSeason()
-
-#stat <- EntriesSeason()
 
 ################################################################################ COUnT IN A SEASON #########################################################################à###
 
@@ -245,10 +249,6 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html
 
 }
 #############################################################################################################################################################################
-for (i in 1:length(round)) 
-{
-stat <- SameSeasonRound(round[i])
-write_tableHTML(tableHTML(stat), file = paste("Data/SameSeason/SameSeasonRound",round[i],".html"))
-}
-
+stat <- EntriesSeason()
+write_tableHTML(tableHTML(stat), file = 'Test.html')
 
