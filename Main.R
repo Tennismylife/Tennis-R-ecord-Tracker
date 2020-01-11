@@ -249,6 +249,6 @@ stat <- EntriesSeason()
 
 }
 #############################################################################################################################################################################
-stat <- EntriesSeason()
+stat <- PercentageSameSeason()
 write_tableHTML(tableHTML(stat), file = 'Test.html')
 
