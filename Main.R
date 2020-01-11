@@ -14,13 +14,11 @@ source("Ranking.R")
 source("Reader.R")
 source("Percentage.R")
 source("Played.R")
+source("Player.R")
 source("Same.R")
 source("Season.R")
 source("Wins.R")
 source("Timespan.R")
-
-
-source("Player.R")
 
 #Read database from csv
 db <- ReadData(file)
@@ -29,7 +27,7 @@ category <- "G"
 surface <- "Hard"
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-if(FALSE){
+#if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -155,7 +153,7 @@ stat <- EntriecategoryByAge(category, 'oldest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntriecategoryByAge",round[i],".html"))
 
 stat <- EntrieSurfaceByAge(surface, 'oldest', round[i])
-write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",round[i],".html"))
+(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",round[i],".html"))
 
 stat <-EntrieTourByAge("Australian Open", 'oldest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieTourByAge",round[i],".html"))
@@ -245,11 +243,11 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html
 
 #stat <- LowestRankingRound('QF')
 
-}
+#}
 #############################################################################################################################################################################
 
-stat <- WinsAgainstNumber1()
-write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameTour.html')
+#stat <-EntrieSurfaceByAge(surface, 'youngest', 'SF')
+#write_tableHTML(tableHTML(stat), file = 'Test.html')
 
 
 
