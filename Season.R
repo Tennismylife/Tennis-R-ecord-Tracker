@@ -50,25 +50,48 @@ EntriesSeason <- function() {
 
 
 
-WinsSeason <- function() {
-  dbm <- db
-  ## drop walkover matches (not countable)
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+SameSeasonRound <- function(stage) {
+  db <- removeTeamEvents(db)
   
-  wins <- dbm[,c('winner_name','tourney_id', 'tourney_name')]
+  dbm <- db
+  
+  dbm <- dbm[!dbm$score=="ABN" & !dbm$score=="(ABN)" & !str_detect(dbm$score, "(WEA)")]
+  
+  ## get round matches
+  if(stage !='W' & stage !='0')
+    dbm <- dbm[round == stage]
+  
+  if(stage =='W')
+    dbm <- dbm[round == 'F']
+  
+  wins <- dbm[,c('winner_name','tourney_id', 'tourney_name', 'round')]
+  
+  if(stage !='W')
+    losses <- dbm[,c('loser_name','tourney_id', 'tourney_name', 'round')]
+  
+  names(wins)[1] <- "name"
+  
+  if(stage !='W')
+    names(losses)[1] <- "name"
+  
+  ## merge the tables by "name"
+  if(stage !='W')
+    res <- rbind(wins, losses, by = c("name"), fill=TRUE)
+  
+  if(stage =='W')
+    res <- wins
+  
   
   #extract year from tourney_date
-  wins$tourney_id <- stringr::str_sub(wins$tourney_id, 0 ,4)
+  res$tourney_id <- stringr::str_sub(res$tourney_id, 0 ,4)
   
-  names(wins)[2] <- "year"
+  same <- res[, .N, by = list(res$name, res$tourney_id)]
   
-  season <- wins[, .N, by = list(wins$winner_name, wins$year)]
+  names(same)[1] <- "Player"
+  names(same)[2] <- "Season"
+  names(same)[3] <- "N"
   
-  names(season)[1] <- "Player"
-  names(season)[2] <- "Season"
-  names(season)[3] <- "Wins"
-  
-  season <- season[order(-Wins)] 
+  season <- same[order(-N)] 
   season <- season[1:20,]
   
   print(season)
