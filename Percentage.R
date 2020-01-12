@@ -160,7 +160,7 @@ PercentageTour <- function(tour) {
 
 
 
-PercentageSameSeason<- function() {
+PercentageSameSeason <- function() {
   
   dbm <- db
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]

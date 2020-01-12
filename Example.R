@@ -189,7 +189,7 @@ h2h$match <- paste(h2h$winner_name, "-", h2h$loser_name)
 h2h$reverse <- paste(h2h$loser_name, "-", h2h$winner_name)
 
 
-h2h <- h2h[!(h2h$reverse %in% h2h$match),]
+#h2h <- h2h[!(h2h$reverse %in% h2h$match),]
 
 
 out <- h2h[,.N, by=match]
@@ -259,5 +259,37 @@ WinsAgainstNumber1 <- function() {
   setorder(losses, -N)
   losses <- losses[1:1,]
   print(losses)
+  
+}
+
+
+##################################################################### MOST ACES IN A YTOURNAMENT ###########################################################################
+
+
+MostAcesinTour <- function() {
+  
+  dbm <- db
+  
+  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)" & !dbm$score=="ABN"]
+  
+  db <- db[tourney_id == '2020-8888']
+  
+  
+  winner_aces <- db[,c("winner_name", "w_ace")]
+  
+  loser_aces <- db[,c("loser_name", "l_ace")]
+  
+  names(winner_aces)[1] <- names(loser_aces)[1] <- "name"
+  names(winner_aces)[2] <- names(loser_aces)[2] <- "aces"
+  
+  res <- union(winner_aces, loser_aces, by = c("name"), all=TRUE)
+
+  res[is.na(res)] <- 0
+  
+  totalAces <- aggregate(as.numeric(res$aces), by=list(name=res$name), FUN=sum)
+
+  setorder(totalAces, -x)
+  
+  print(totalAces)
   
 }

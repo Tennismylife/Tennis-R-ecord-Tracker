@@ -239,6 +239,8 @@ for (i in 1:length(round))
 
 stat <- EntriesSeason()
 
+stat <- PercentageSameSeason()
+
 #stat <- titlesSeason()
 
 ################################################################################ COUnT IN A SEASON #########################################################################à###
@@ -249,6 +251,6 @@ stat <- EntriesSeason()
 
 }
 #############################################################################################################################################################################
-stat <- PercentageSameSeason()
+stat <- MostAcesinTour()
 write_tableHTML(tableHTML(stat), file = 'Test.html')
 
