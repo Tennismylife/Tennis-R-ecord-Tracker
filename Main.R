@@ -27,7 +27,7 @@ category <- "G"
 surface <- "Hard"
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-if(FALSE){
+#if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -152,8 +152,8 @@ write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieOverallBy
 stat <- EntriecategoryByAge(category, 'oldest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntriecategoryByAge",round[i],".html"))
 
-stat <- EntrieSurfaceByAge(surface, 'oldest', round[i])
-write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",round[i],".html"))
+#stat <- EntrieSurfaceByAge(surface, 'oldest', round[i])
+#write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",round[i],".html"))
 
 stat <-EntrieTourByAge("Australian Open", 'oldest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieTourByAge",round[i],".html"))
@@ -168,8 +168,8 @@ write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieOvera
 stat <- EntriecategoryByAge(category, 'youngest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntriecategoryByAge",round[i],".html"))
 
-stat <- EntrieSurfaceByAge(surface, 'youngest', round[i])
-write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieSurfaceByAge",round[i],".html"))
+#stat <- EntrieSurfaceByAge(surface, 'youngest', round[i])
+#write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieSurfaceByAge",round[i],".html"))
 
 stat <-EntrieTourByAge("Australian Open", 'youngest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieTourByAge",round[i],".html"))
@@ -251,7 +251,7 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 #stat <- LowestRankingRound('QF')
 
-}
+#}
 #############################################################################################################################################################################
 stat <- MostAcesinTour()
 write_tableHTML(tableHTML(stat), file = 'Test.html')

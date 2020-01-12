@@ -196,7 +196,7 @@ out <- h2h[,.N, by=match]
 
 out <- arrange(out, desc(out$N))
 
-out <- out[1:20,]
+out <- out[1:30,]
 
 print(out)
 }
@@ -251,13 +251,11 @@ WinsAgainstNumber1 <- function() {
   ## ranking #1
   dbm <- dbm[loser_rank =='1']
   
-  print(dbm)
-  
   losses <- dbm[,.N, by=winner_name]
   
   ## order by decreasing total matches
   setorder(losses, -N)
-  losses <- losses[1:1,]
+  losses <- losses[1:20,]
   print(losses)
   
 }
