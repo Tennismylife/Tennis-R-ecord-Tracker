@@ -238,8 +238,10 @@ for (i in 1:length(round))
 }
 
 stat <- EntriesSeason()
+write_tableHTML(tableHTML(stat), file = 'Data/SameSeason/SameSeasonEntries.html')
 
 stat <- PercentageSameSeason()
+write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.html')
 
 #stat <- titlesSeason()
 
