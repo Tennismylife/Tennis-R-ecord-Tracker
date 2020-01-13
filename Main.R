@@ -24,10 +24,10 @@ source("Timespan.R")
 db <- ReadData(file)
 
 category <- "G"
-surface <- "Hard"
+surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-#if(FALSE){
+if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -37,9 +37,11 @@ stat<- PlayedTour("Australian Open","Australian Open", "Australian Open")
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedTour", append=TRUE)
 write_tableHTML(tableHTML(stat), file = 'Data/Played/PlayedTour.html')
 
-stat <-  PlayedSurface(surface)
+for (i in 1:length(surface)) {
+stat <-  PlayedSurface(surface[i])
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedSurface", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Played/PlayedSurface.html')
+write_tableHTML(tableHTML(stat), file = paste("Data/Played/Played",surface[i],".html"))
+}
 
 stat <- PlayedOverall()
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedOverall", append=TRUE)
@@ -251,8 +253,11 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 #stat <- LowestRankingRound('QF')
 
-#}
+}
 #############################################################################################################################################################################
-stat <- MostAcesinTour()
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+for (i in 1:length(surface)) {
+  stat <-  PlayedSurface(surface[i])
+  #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedSurface", append=TRUE)
+  write_tableHTML(tableHTML(stat), file = paste("Data/Played/Played",surface[i],".html"))
+}
 
