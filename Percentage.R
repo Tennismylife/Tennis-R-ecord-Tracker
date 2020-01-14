@@ -168,11 +168,14 @@ PercentageSameSeason <- function() {
   #extract year from tourney_date
   dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 0 ,4)
   
+  dbm <- dbm[tourney_id == '2019']
   
   ## wins
+  #dbm1 <- dbm[winner_name == 'Rafael Nadal']
   wins <- dbm[,.N, by=list(winner_name, tourney_id)]
   
   ## losses
+  #dbm1 <- dbm[loser_name == 'Rafael Nadal']
   losses <- dbm[,.N, by=list(loser_name, tourney_id)]
   
   ## common name to merge with
@@ -190,7 +193,7 @@ PercentageSameSeason <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  res <- res[played > 50]
+  #res <- res[played > 2]
   
   res <- res[, percentage:=wins/played*100]
   

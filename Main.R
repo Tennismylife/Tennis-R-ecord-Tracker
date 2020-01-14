@@ -255,9 +255,6 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 }
 #############################################################################################################################################################################
-for (i in 1:length(surface)) {
-  stat <-  PlayedSurface(surface[i])
-  #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedSurface", append=TRUE)
-  write_tableHTML(tableHTML(stat), file = paste("Data/Played/Played",surface[i],".html"))
-}
+stat <- PercentageSameSeason()
+write_tableHTML(tableHTML(stat), file = 'Test.html')
 
