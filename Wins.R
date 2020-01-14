@@ -60,6 +60,7 @@ WinsOverall <- function() {
 }
 
 LossesOverall <- function() {
+  dbm <- db
   ## drop walkover matches (not countable)
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   ## count occurrences of lost matches

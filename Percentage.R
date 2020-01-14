@@ -208,7 +208,7 @@ PercentageSameSeason <- function() {
 }
 
 
-PercentageSameSruface <- function() {
+PercentageSameSurface <- function() {
   
   dbm <- db
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]

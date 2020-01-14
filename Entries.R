@@ -27,7 +27,7 @@ EntriesOverall <- function() {
   
   setorder(entry, -N, na.last=FALSE)
   
-  entry <- entry[1:100,]
+  #entry <- entry[1:100,]
   
   print(entry)
 }

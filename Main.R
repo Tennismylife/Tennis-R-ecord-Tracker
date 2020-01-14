@@ -56,6 +56,7 @@ stat <- WinsTour("Australian Open","Australian Open", "Australian Open")
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsTour", append=TRUE)
 write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsTour.html')
 
+surface <- 'Hard'
 stat <- winsSurface(surface)
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="winsSurface", append=TRUE)
 write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsSurface.html')
@@ -64,8 +65,8 @@ stat <- WinsOverall()
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsOverall", append=TRUE)
 write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsOverall.html')
 
-stat <- LossesOverall()
-write_tableHTML(tableHTML(stat), file = 'Data/LossesOverall.html')
+#stat <- LossesOverall()
+#write_tableHTML(tableHTML(stat), file = 'Data/LossesOverall.html')
 
 
 ################################################################### Entries Counter ###########################################
@@ -255,6 +256,5 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 #}
 #############################################################################################################################################################################
-stat <- EntriesOverall()
+stat <- LossesOverall()
 write_tableHTML(tableHTML(stat), file = 'Test.html')
-write_tableHTML(tableHTML(stat), file = 'Data/Entries/EntriesOverall.html')
