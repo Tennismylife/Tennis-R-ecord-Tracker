@@ -27,7 +27,7 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-if(FALSE){
+#if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -253,8 +253,8 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 #stat <- LowestRankingRound('QF')
 
-}
+#}
 #############################################################################################################################################################################
-stat <- PercentageSameSeason()
+stat <- EntriesOverall()
 write_tableHTML(tableHTML(stat), file = 'Test.html')
-
+write_tableHTML(tableHTML(stat), file = 'Data/Entries/EntriesOverall.html')

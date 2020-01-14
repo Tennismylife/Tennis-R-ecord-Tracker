@@ -241,21 +241,3 @@ EntrieSurfaceByAge <- function(court) {
   res <- res[order(-age)] 
   res <- res[1:100,]
 }
-
-
-removeTeamEvents <- function(db) {
-  ind_Dusseldorf <- grep("^World Team Cup", db$tourney_name)
-  if (length(ind_Dusseldorf)>0)
-    db <- db[-ind_Dusseldorf, ]
-  
-  ind_davis <- grep("^Davis", db$tourney_name)
-  if (length(ind_davis)>0)
-    db <- db[-ind_davis, ]
-  
-  
-  ind_Laver <- grep("^Laver Cup", db$tourney_name)
-  if (length(ind_Laver)>0)
-    db <- db[-ind_Laver, ]
-}
-
-
