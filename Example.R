@@ -297,30 +297,30 @@ averageAgeRoundinTour <- function(){
   
   dbm <- db
   
-  dbm <- dbm[round == 'SF']
-  
+  dbm <- dbm[round == 'SF' & grepl("2019", dbm$tourney_id)]
   
   wins <- dbm[,c('tourney_id', 'winner_age')]
   
   losses <- dbm[,c('tourney_id', 'loser_age')]
   
-  print(wins)
-  
-  print(losses)
-  
   names(wins)[2] <- "age"
   names(losses)[2] <- "age"
   
-  
   res <- rbind(wins, losses)
+  
+  #setorder(res, -tourney_id)
   
   res[is.na(res)] <- 0
   
-  setorder(res, -tourney_id)
+  officialName <- unique(dbm[,c('tourney_id', 'tourney_name')])
+  
+  res <- left_join(res, officialName, by="tourney_id")
   
   print(res)
   
-  average <- aggregate(res$age, by=list(tourney_id=res$tourney_id), FUN=mean, na.rm=TRUE)
+  average <- aggregate(res$age, by=list(tourney_id=res$tourney_id, tourney_name=res$tourney_name), FUN=mean, na.rm=TRUE)
+  
+  average$x <- gsub("\\.", ",", average$x)
   
   setorder(average, -tourney_id)
   average <- average[1:100,]
