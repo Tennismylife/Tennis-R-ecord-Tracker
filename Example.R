@@ -291,3 +291,41 @@ MostAcesinTour <- function() {
   print(totalAces)
   
 }
+
+
+averageAgeRoundinTour <- function(){
+  
+  dbm <- db
+  
+  dbm <- dbm[round == 'SF']
+  
+  
+  wins <- dbm[,c('tourney_id', 'winner_age')]
+  
+  losses <- dbm[,c('tourney_id', 'loser_age')]
+  
+  print(wins)
+  
+  print(losses)
+  
+  names(wins)[2] <- "age"
+  names(losses)[2] <- "age"
+  
+  
+  res <- rbind(wins, losses)
+  
+  res[is.na(res)] <- 0
+  
+  setorder(res, -tourney_id)
+  
+  print(res)
+  
+  average <- aggregate(res$age, by=list(tourney_id=res$tourney_id), FUN=mean, na.rm=TRUE)
+  
+  setorder(average, -tourney_id)
+  average <- average[1:100,]
+  
+  print(average)
+  
+  
+}
