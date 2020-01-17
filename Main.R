@@ -257,5 +257,5 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 #}
 #############################################################################################################################################################################
 
-stat <- averageAgeRoundinTour()
+stat <- LowestRankingRound('W')
 write_tableHTML(tableHTML(stat), file = 'Test.html')

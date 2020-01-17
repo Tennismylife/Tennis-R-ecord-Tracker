@@ -4,7 +4,7 @@ LowestRankingRound <- function(stage) {
   
   dbm <- db
   
-  dbm <- dbm[tourney_level =='G']
+  #dbm <- dbm[tourney_level =='G']
   
   if(stage != 'W' & stage!='0')
     dbm <- dbm[round == stage]

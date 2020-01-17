@@ -297,7 +297,7 @@ averageAgeRoundinTour <- function(){
   
   dbm <- db
   
-  dbm <- dbm[round == 'SF' & grepl("2019", dbm$tourney_id)]
+  dbm <- dbm[round == 'F' & grepl("2019-", dbm$tourney_id)]
   
   wins <- dbm[,c('tourney_id', 'winner_age')]
   
