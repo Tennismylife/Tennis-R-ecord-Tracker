@@ -195,6 +195,8 @@ SameSurfaceRound <- function(stage) {
 
 SameTournamentPlayed <- function() {
   db <- removeTeamEvents(db)
+
+  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
   
   #tournaments won
   wins <- db[,c('winner_name','tourney_id','tourney_name')]
@@ -210,6 +212,42 @@ SameTournamentPlayed <- function() {
   
   ## merge the tables by "name"
   res <- rbind(wins, losses, all = TRUE, fill=TRUE)
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  same <- res[, .N, by = list(res$name, res$tourname)]
+  
+  ## order by decreasing age
+  same <- same[order(-N)] 
+  
+  names(same)[1] <- "Player"
+  names(same)[2] <- "Tournament"
+  names(same)[3] <- "N"
+  
+  #select first 20
+  same <- same[1:20,]
+  
+  print(same)
+  
+}
+
+
+SameTournamentWins <- function() {
+  db <- removeTeamEvents(db)
+  
+  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  
+  #tournaments won
+  wins <- db[,c('winner_name','tourney_id','tourney_name')]
+  
+  ## common name to merge with
+  names(wins)[1] <- "name"
+  names(wins)[2] <- "id"
+  names(wins)[3] <- "tourname"
+  
+  ## merge the tables by "name"
+  res <- wins
   
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0

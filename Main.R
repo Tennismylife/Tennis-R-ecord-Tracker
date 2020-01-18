@@ -253,5 +253,5 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 }
 #############################################################################################################################################################################
 
-stat <- SameTournamentPlayed()
-write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentPlayed.html"))
+stat <- SameTournamentWins()
+write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentWins.html"))
