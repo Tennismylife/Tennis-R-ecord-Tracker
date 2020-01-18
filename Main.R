@@ -27,7 +27,7 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-#if(FALSE){
+if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -213,12 +213,8 @@ for (i in 1:length(round))
   write_tableHTML(tableHTML(stat), file = paste("Data/SameSurface/SameSurfaceRound",round[i],".html"))
 }
 
-for (i in 1:length(round)) 
-{
-  stat <- SameSurfaceRound(round[i])
-  write_tableHTML(tableHTML(stat), file = paste("Data/SameSurface/SameSurfaceRound",round[i],".html"))
-}
-
+stat <- SameTournamentPlayed()
+write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentPlayed.html"))
 
 stat <- SameTournamentEntries('0')
 write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentEntries.html"))
@@ -254,8 +250,8 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 #stat <- LowestRankingRound('QF')
 
-#}
+}
 #############################################################################################################################################################################
 
-stat <- LowestRankingRound('W')
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <- SameTournamentPlayed()
+write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentPlayed.html"))
