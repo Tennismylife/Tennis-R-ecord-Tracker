@@ -19,6 +19,7 @@ source("Same.R")
 source("Season.R")
 source("Wins.R")
 source("Timespan.R")
+source("Nationality.R")
 
 #Read database from csv
 db <- ReadData(file)
@@ -216,6 +217,9 @@ for (i in 1:length(round))
 stat <- SameTournamentPlayed()
 write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentPlayed.html"))
 
+stat <- SameTournamentWins()
+write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentWins.html"))
+
 stat <- SameTournamentEntries('0')
 write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentEntries.html"))
 
@@ -253,5 +257,5 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 }
 #############################################################################################################################################################################
 
-stat <- SameTournamentWins()
-write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentWins.html"))
+stat <- PercentageTour("Australian Open")
+write_tableHTML(tableHTML(stat), file = paste("Test.html"))

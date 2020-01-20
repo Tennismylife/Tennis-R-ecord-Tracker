@@ -63,6 +63,8 @@ SameTournamentRound <- function(stage) {
 SameTournamentEntries <- function(stage) {
   db <- removeTeamEvents(db)
   
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  
   #tournaments won
   wins <- unique(db[,c('winner_name','tourney_name','tourney_date')])
   wins <- dplyr::distinct(wins)
@@ -93,7 +95,7 @@ SameTournamentEntries <- function(stage) {
   names(same)[3] <- "N"
   
   #select first 20
-  same <- same[1:20,]
+  same <- same[1:100,]
   
   print(same)
   
@@ -102,6 +104,8 @@ SameTournamentEntries <- function(stage) {
 
 SameSurfaceEntries <- function() {
   db <- removeTeamEvents(db)
+  
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   #tournaments won
   wins <- unique(db[,c('winner_name','tourney_name','tourney_date', 'surface')])
@@ -208,7 +212,7 @@ SameTournamentPlayed <- function() {
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
   names(wins)[2] <- names(losses)[2] <- "id"
-  names(wins)[3] <- names(losses)[3] <- "tourname"
+  names(wins)[3] <- names(losses)[3] <- "tournament"
   
   ## merge the tables by "name"
   res <- rbind(wins, losses, all = TRUE, fill=TRUE)
@@ -216,7 +220,7 @@ SameTournamentPlayed <- function() {
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
   
-  same <- res[, .N, by = list(res$name, res$tourname)]
+  same <- res[, .N, by = list(res$name, res$tournament)]
   
   ## order by decreasing age
   same <- same[order(-N)] 
