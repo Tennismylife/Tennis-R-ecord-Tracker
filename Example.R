@@ -329,3 +329,15 @@ averageAgeRoundinTour <- function(){
   
   
 }
+
+WinnerInATourByNation <- function(){
+  db <- db[winner_ioc == 'ITA']
+  
+  db <- db[grepl("-580", db$tourney_id)]
+  
+  
+  db <- unique(db[,c('winner_name')])
+  
+}
+
+
