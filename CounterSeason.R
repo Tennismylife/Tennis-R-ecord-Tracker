@@ -8,10 +8,9 @@ CountRoundSeason <- function() {
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   
   ##SelectRound
-  dbm <- dbm[round == 'QF']
+  dbm <- dbm[tourney_level == 'G']
   
-
-  #dbm <- dbm[winner_ioc =='ITA']
+  dbm <- dbm[winner_ioc =='ITA']
     
   wins <- dbm[,c('winner_name','tourney_id')]
   

@@ -28,7 +28,7 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-if(FALSE){
+#if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -254,17 +254,9 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 #stat <- LowestRankingRound('QF')
 
-}
+#}
 #############################################################################################################################################################################
 
-library("future")
-plan(multiprocess)
-tempjob1 %<-% PlayedCategory(category)
-tempjob2 %<-% PlayedOverall()
-temp.list <- lapply(ls(pattern = "temp"), get)
 
-write_tableHTML(tableHTML(stat), file = paste("Test.html"))
-
-stat <- EntriesCategory(category)
-#write.xlsx(stat, file = "EntriesTracker.xlsx", sheetName="EntriesCategory", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Entries/EntriesCategory.html')
+stat <- CountRoundSeason()
+write_tableHTML(tableHTML(stat), file = 'Test.html')
