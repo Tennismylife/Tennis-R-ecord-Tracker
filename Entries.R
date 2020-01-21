@@ -72,8 +72,6 @@ EntriesCategory <- function(category) {
   ## only select tournaments in the previously defined pool
   dbm <- db[tourney_level == category]
   
-  dbm <-  dbm[winner_age < 18.426 |  loser_age <  18.426]
-  
   dbm1 <- dbm[round == 'F']
   dbm1 <- unique(dbm1[,c('winner_name','tourney_name','tourney_date')])
   dbm2 <- unique(dbm[,c('loser_name','tourney_name','tourney_date')])
