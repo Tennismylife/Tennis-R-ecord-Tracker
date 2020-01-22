@@ -159,19 +159,21 @@ wins$score <- as.numeric(as.character(unlist(wins$score)))
 #calculate sum by edition
 lostgame <- aggregate(wins$score, by=list(tourney_id=wins$tourney_id), FUN=sum, na.rm=TRUE)
 
-names(lostgames)[2] <- "games"
+names(lostgame)[2] <- "games"
 
 res <- db[round =='F' & tourney_level == 'G']
 officialName <- unique(res[,c('tourney_id', 'tourney_name', 'winner_name')])
 
-lostgame <- left_join(officialName, lostgame, by="tourney_id")
+lostgame <- join(officialName, lostgame, by="tourney_id")
 
 #extract year from tourney_id
 lostgame$tourney_id <- stringr::str_sub(lostgame$tourney_id, 0 ,4)
 
-lostgame <- lostgame[,c("tourney_name", "tourney_id", "winner_name", "x")]
+print(lostgame)
 
-lostgame <- arrange(lostgame, lostgame$x)
+lostgame <- lostgame[,c("tourney_name", "tourney_id", "winner_name", "games")]
+
+lostgame <- arrange(lostgame, lostgame$games)
 
 print(lostgame)
 
