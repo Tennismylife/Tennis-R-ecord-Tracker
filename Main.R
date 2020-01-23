@@ -258,6 +258,6 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 #############################################################################################################################################################################
 
 
-stat <- TimespanCategoryEntry(category, 'R32')
-#write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespanCategoryEntry"), append=TRUE)
-write_tableHTML(tableHTML(stat), file = paste("Data/Timespan/TimespanCategoryEntry", 'R32',".html"))
+stat <- WinsTour("Australian Open","Australian Open", "Australian Open")
+#write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsTour", append=TRUE)
+write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsTour.html')
