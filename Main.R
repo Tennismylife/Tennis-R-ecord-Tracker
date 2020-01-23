@@ -28,7 +28,7 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-if(FALSE){
+#if(FALSE){
 ##################################################################### PLAYED ######################################################
 stat<- PlayedCategory(category)
 #write.xlsx(stat, file = "PlayedTracker.xlsx", sheetName="PlayedCategory", append=FALSE)
@@ -254,10 +254,10 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 
 #stat <- LowestRankingRound('QF')
 
-}
+#}
 #############################################################################################################################################################################
 
 
-stat <- WinsTour("Australian Open","Australian Open", "Australian Open")
+stat <- PlayerStats('Rafael Nadal')
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsTour", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsTour.html')
+write_tableHTML(tableHTML(stat), file = 'Test.html')
