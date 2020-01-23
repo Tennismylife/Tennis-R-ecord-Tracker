@@ -258,5 +258,6 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 #############################################################################################################################################################################
 
 
-stat <-LeastGameToWinSlam()
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <- TimespanCategoryEntry(category, 'R32')
+#write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespanCategoryEntry"), append=TRUE)
+write_tableHTML(tableHTML(stat), file = paste("Data/Timespan/TimespanCategoryEntry", 'R32',".html"))

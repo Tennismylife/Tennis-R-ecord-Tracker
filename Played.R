@@ -10,21 +10,28 @@ PlayedOverall <- function() {
   losses <- dbm[,.N, by= loser_name]
   
   ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[1] <- names(losses)[1] <- "Player"
   names(wins)[2] <- "wins"
   names(losses)[2] <- "losses"
   
   ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name"), all=TRUE)
+  res <- merge(wins, losses, by = c("Player"), all=TRUE)
   
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
   
   ## sum the wins and losses into a new column played
   res <- res[, played:=wins+losses]
+  
   ## order by decreasing total matches
   setorder(res, -played)
-  res <- res[1:100,]
+  
+  res <- res[, c("Player", "played")]
+  
+  names(res)[1] <- "Player"
+  names(res)[2] <- "#Ms"
+  
+  res <- res[1:20,]
   print(res)
 }
 
@@ -43,12 +50,12 @@ PlayedCategory <- function(category) {
   losses <- dbm[,.N, by= loser_name]
   
   ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[1] <- names(losses)[1] <- "Player"
   names(wins)[2] <- "wins"
   names(losses)[2] <- "losses"
   
   ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name"), all=TRUE)
+  res <- merge(wins, losses, by = c("Player"), all=TRUE)
   
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
@@ -57,7 +64,13 @@ PlayedCategory <- function(category) {
   res <- res[, played:=wins+losses]
   ## order by decreasing total matches
   setorder(res, -played)
-  res <- res[1:100,]
+  
+  res <- res[, c("Player", "played")]
+  
+  names(res)[1] <- "Player"
+  names(res)[2] <- "#Ms"
+  
+  res <- res[1:20,]
   print(res)
 }
 
@@ -74,12 +87,12 @@ PlayedSurface <- function(court) {
   losses <- dbm[,.N, by= loser_name]
   
   ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[1] <- names(losses)[1] <- "Player"
   names(wins)[2] <- "wins"
   names(losses)[2] <- "losses"
   
   ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name"), all=TRUE)
+  res <- merge(wins, losses, by = c("Player"), all=TRUE)
   
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
@@ -89,7 +102,13 @@ PlayedSurface <- function(court) {
   
   ## order by decreasing total matches
   setorder(res, -played)
-  res <- res[1:100,]
+  
+  res <- res[, c("Player", "played")]
+  
+  names(res)[1] <- "Player"
+  names(res)[2] <- "#Ms"
+  
+  res <- res[1:20,]
   print(res)
 }
 
@@ -107,21 +126,28 @@ PlayedTour <- function(tournament, tournament2, tournament3) {
   losses <- dbm[,.N, by= loser_name]
   
   ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[1] <- names(losses)[1] <- "Player"
   names(wins)[2] <- "wins"
   names(losses)[2] <- "losses"
   
   ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name"), all=TRUE)
+  res <- merge(wins, losses, by = c("Player"), all=TRUE)
   
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
   
   ## sum the wins and losses into a new column played
   res <- res[, played:=wins+losses]
+  
   ## order by decreasing total matches
   setorder(res, -played)
-  res <- res[1:100,]
+  
+  res <- res[, c("Player", "played")]
+  
+  names(res)[1] <- "Player"
+  names(res)[2] <- "#Ms"
+  
+  res <- res[1:20,]
   print(res)
 }
 

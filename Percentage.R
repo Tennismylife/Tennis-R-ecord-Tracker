@@ -81,15 +81,15 @@ PercentageSurface <- function(court) {
 
 
 PercentageCategory <- function(category) {
-  dbm <- db
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+
+  db <- db[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   
-  dbm <- dbm[tourney_level == category]
+  db <- db[tourney_level == category]
   
   ## wins
-  wins <- dbm[,.N, by=winner_name]
+  wins <- db[,.N, by=winner_name]
   ## losses
-  losses <- dbm[,.N, by= loser_name]
+  losses <- db[,.N, by= loser_name]
   
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
@@ -253,6 +253,8 @@ PercentageSameTour <- function() {
   dbm <- db
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   
+  dbm <- dbm[tourney_level =='G']
+  
   #extract year from tourney_date
   dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 5 ,9)
   
@@ -283,7 +285,7 @@ PercentageSameTour <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  res <- res[played > 3]
+  res <- res[played > 20]
   
   res <- res[, percentage:=wins/played*100]
   

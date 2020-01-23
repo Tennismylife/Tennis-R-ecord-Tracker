@@ -423,7 +423,16 @@ TimespanCategoryEntry <- function(category, stage) {
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  timespan <- timespan[1:100,]
+  
+  #rename columns
+  names(timespan)[1] <- "Player"
+  names(timespan)[2] <- "1st tournament"
+  names(timespan)[3] <- "1st date"
+  names(timespan)[4] <- "last tournament"
+  names(timespan)[5] <- "last date"
+  names(timespan)[6] <- "days"
+  
+  timespan <- timespan[1:20,]
   print(timespan)
 }
 
