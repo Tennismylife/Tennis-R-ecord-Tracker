@@ -2,8 +2,6 @@ EntriesOverall <- function() {
   
   db <- removeTeamEvents(db)
   
-
-  
   #tournaments won
   wins <- unique(db[,c('winner_name','tourney_name','tourney_date')])
   wins <- dplyr::distinct(wins)
@@ -29,7 +27,7 @@ EntriesOverall <- function() {
   
   setorder(entry, -N, na.last=FALSE)
   
-  #entry <- entry[1:100,]
+  entry <- entry[1:20,]
   
   print(entry)
 }
@@ -208,38 +206,64 @@ EntrieCategoryByAge <- function(category) {
 }
 
 
-EntrieSurfaceByAge <- function(court) {
+EntrieSurfaceByAge <- function(court, order, stage) {
   db <- removeTeamEvents(db)
   
-  ## only select tournaments in the previously defined pool
   dbm <- db[surface == court]
   
-  #dbm <- db[tourney_name %in% masters,]
-  dbm1 <- dbm[round == 'F']
-  dbm1 <- unique(dbm1[,c('tourney_name', 'tourney_date', 'winner_ioc', 'winner_name', 'winner_age')])
+  if(stage != 'W' & stage!='0')
+    dbm <- dbm[round == stage]
   
-  dbm2 <- unique(dbm[,c('tourney_name', 'tourney_date', 'loser_ioc', 'loser_name', 'loser_age')])
+  if(stage == 'W')
+    dbm <- dbm[round == 'F']
+  
+  dbm1 <- unique(dbm[,c('tourney_name', 'tourney_id', 'winner_ioc', 'winner_name', 'winner_age')])
+  
+  if(stage != 'W')
+    dbm2 <- unique(dbm[,c('tourney_name', 'tourney_id', 'loser_ioc', 'loser_name', 'loser_age')])
   
   ## wins
   wins <- dbm1
-  print(wins)
+  
   ## losses
-  losses <- dbm2
-  print(losses)
+  if(stage != 'W')
+    losses <- dbm2
   
   ## common name to merge with
-  names(wins)[3] <- names(losses)[3] <- "flag"
-  names(wins)[4] <- names(losses)[4] <- "name"
-  names(wins)[5] <- names(losses)[5] <- "age"
+  names(wins)[3] <- "flag"
+  names(wins)[4] <- "name"
+  names(wins)[5]  <- "age"
+  
+  if(stage != 'W')
+  {
+    names(losses)[3] <- "flag"
+    names(losses)[4] <- "name"
+    names(losses)[5] <- "age"
+  }
   
   ## merge the tables by "name"
-  res <- rbind( wins, losses, fill=TRUE)
-  res$tourney_date <- substr(res$tourney_date, 0, 4)
+  if(stage != 'W'){
+    res <- rbind(wins, losses, fill=TRUE)
+    res <- unique(res)
+  }
+  else 
+    res <- wins
+  
+  res$tourney_id <- substr(res$tourney_id, 0, 4)
+  
   res$age <- substr(res$age, 0, 5)
   res$age <- suppressWarnings(as.numeric(str_replace_all(res$age,pattern=',',replacement='.')))
   
+  if(order == 'oldest'){
+    ## order by decreasing age
+    res <- res[order(-age)] 
+  }
+  
+  if(order == 'youngest'){
+    ## order by creasing age
+    res <- res[order(age)] 
+  } 
+  res <- res[1:20,]
+  
   print(res)
-  ## order by decreasing age
-  res <- res[order(-age)] 
-  res <- res[1:100,]
 }

@@ -57,7 +57,7 @@ EntrieOverallByAge <- function(order, stage) {
     ## order by decreasing age
     res <- res[order(age)] 
   } 
-  res <- res[1:100,]
+  res <- res[1:20,]
   
   print(res)
 }
@@ -120,7 +120,7 @@ EntrieSurfaceByAge <- function(court, order, stage) {
     ## order by decreasing age
     res <- res[order(age)] 
   } 
-  res <- res[1:100,]
+  res <- res[1:20,]
   
   print(res)
 }
@@ -182,7 +182,7 @@ EntriecategoryByAge <- function(category, order, stage) {
     ## order by decreasing age
     res <- res[order(age)] 
   } 
-  res <- res[1:100,]
+  res <- res[1:20,]
   
   print(res)
 }
@@ -246,7 +246,7 @@ EntrieTourByAge <- function(tournament, order, stage) {
     ## order by creasing age
     res <- res[order(age)] 
   } 
-  res <- res[1:100,]
+  res <- res[1:20,]
   
   print(res)
 }

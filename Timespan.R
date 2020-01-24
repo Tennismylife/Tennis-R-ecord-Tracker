@@ -64,18 +64,20 @@ TimespanTournamentEntry <- function(tournament1, tournament2, tournament3, stage
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
   
+  #rename columns
+  names(timespan)[1] <- "Player"
+  names(timespan)[2] <- "Tournament"
+  names(timespan)[3] <- "1st date"
+  names(timespan)[4] <- "last date"
+  names(timespan)[5] <- "days"
+  
+  timespan <- timespan[1:20,]
   print(timespan)
 }
 
 TimespanTournamentWins <- function(tournament1, tournament2, tournament3) {
   
-  ind_Dusseldorf <- grep("^World Team Cup", db$tourney_name)
-  if (length(ind_Dusseldorf)>0)
-    db <- db[-ind_Dusseldorf, ]
-  
-  ind_davis <- grep("^Davis", db$tourney_name)
-  if (length(ind_davis)>0)
-    db <- db[-ind_davis, ]
+  db <- removeTeamEvents(db)
   
   ## only select tournaments in the previously defined pool
   dbm <- db[(tourney_name == tournament1 | tourney_name == tournament2 | tourney_name == tournament3)]
@@ -279,14 +281,8 @@ TimespaSurfaceWins <- function(court) {
 
 ################################################################################## ENTRY ##########################################################################
 TimespanOverallEntry <- function(stage) {
-  ind_Dusseldorf <- grep("^World Team Cup", db$tourney_name)
-  if (length(ind_Dusseldorf)>0)
-    db <- db[-ind_Dusseldorf, ]
-  
-  ind_davis <- grep("^Davis", db$tourney_name)
-  if (length(ind_davis)>0)
-    db <- db[-ind_davis, ]
-  
+  db <- removeTeamEvents(db)
+
   ## only select tournaments in the previously defined pool
   dbm <- db
   
@@ -344,14 +340,21 @@ TimespanOverallEntry <- function(stage) {
   #erase age column
   timespan$age <- NULL
   
-  print(timespan)
-  
   #calculate date diff by days
   timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  timespan <- timespan[1:100,]
+  
+  #rename columns
+  names(timespan)[1] <- "Player"
+  names(timespan)[2] <- "1st tournament"
+  names(timespan)[3] <- "1st date"
+  names(timespan)[4] <- "last tournament"
+  names(timespan)[5] <- "last date"
+  names(timespan)[6] <- "days"
+  
+  timespan <- timespan[1:20,]
   print(timespan)
   
 }
@@ -437,15 +440,11 @@ TimespanCategoryEntry <- function(category, stage) {
 }
 
 TimespaSurfaceEntry <- function(court, stage) {
+  
+  db <- removeTeamEvents(db)
+  
   dbm <- db
   
-  ind_Dusseldorf <- grep("^World Team Cup", dbm$tourney_name)
-  if (length(ind_Dusseldorf)>0)
-    dbm <- dbm[-ind_Dusseldorf, ]
-  
-  ind_davis <- grep("^Davis", dbm$tourney_name)
-  if (length(ind_davis)>0)
-    dbm <- dbm[-ind_davis, ]
   
   dbm <- dbm[surface == court]
   
@@ -510,7 +509,16 @@ TimespaSurfaceEntry <- function(court, stage) {
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  timespan <- timespan[1:100,]
+  
+  #rename columns
+  names(timespan)[1] <- "Player"
+  names(timespan)[2] <- "1st tournament"
+  names(timespan)[3] <- "1st date"
+  names(timespan)[4] <- "last tournament"
+  names(timespan)[5] <- "last date"
+  names(timespan)[6] <- "days"
+  
+  timespan <- timespan[1:20,]
   print(timespan)
 }
 

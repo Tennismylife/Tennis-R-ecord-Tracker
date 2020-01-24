@@ -82,7 +82,7 @@ PercentageSurface <- function(court) {
 
 PercentageCategory <- function(category) {
 
-  db <- db[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   db <- db[tourney_level == category]
   

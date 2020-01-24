@@ -1,25 +1,8 @@
 CountOverallRound <- function(stage) {
+  
+  db <- removeTeamEvents(db)
+  
   dbm <- db
-  
-  #Drop World Team Cup entries
-  ind_Dusseldorf <- grep("^World Team Cup", dbm$tourney_name)
-  if (length(ind_Dusseldorf)>0)
-    dbm <- dbm[-ind_Dusseldorf, ]
-  
-  #Drop Davis Cup entries
-  ind_davis <- grep("^Davis", dbm$tourney_name)
-  if (length(ind_davis)>0)
-    dbm <- dbm[-ind_davis, ]
-  
-  #Drop World Team Cup entries
-  ind_Dusseldorf <- grep("^World Team Championship", dbm$tourney_name)
-  if (length(ind_Dusseldorf)>0)
-    dbm <- dbm[-ind_Dusseldorf, ]
-  
-  #Drop World Team Cup entries
-  ind_Dusseldorf <- grep("^Nations Cup", dbm$tourney_name)
-  if (length(ind_Dusseldorf)>0)
-    dbm <- dbm[-ind_Dusseldorf, ]
   
   if(stage != 'W')
     dbm <- dbm[round == stage]
@@ -67,7 +50,8 @@ CountOverallRound <- function(stage) {
    else
   res <- res[,c('name', 'wins')]
   
-  res <- res[1:100,]
+  res <- res[1:20,]
+  
   print(res)
 }
 
@@ -122,7 +106,7 @@ CountSurfaceRound <- function(court, stage) {
   else
     res <- res[,c('name', 'wins')]
   
-  res <- res[1:100,]
+  res <- res[1:20,]
   print(res)
 }
 
@@ -178,7 +162,7 @@ CountCategoryRound <- function(category, stage) {
   else
     res <- res[,c('name', 'wins')]
   
-  res <- res[1:100,]
+  res <- res[1:20,]
   print(res)
 }
 
@@ -234,6 +218,6 @@ CountTourRound <- function(tournament, stage) {
   else
     res <- res[,c('name', 'wins')]
   
-  res <- res[1:100,]
+  res <- res[1:20,]
   print(res)
 }

@@ -156,8 +156,8 @@ write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieOverallBy
 stat <- EntriecategoryByAge(category, 'oldest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntriecategoryByAge",round[i],".html"))
 
-#stat <- EntrieSurfaceByAge(surface, 'oldest', round[i])
-#write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",round[i],".html"))
+stat <- EntrieSurfaceByAge(surface, 'oldest', round[i])
+write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",round[i],".html"))
 
 stat <-EntrieTourByAge("Australian Open", 'oldest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieTourByAge",round[i],".html"))
@@ -172,8 +172,9 @@ write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieOvera
 stat <- EntriecategoryByAge(category, 'youngest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntriecategoryByAge",round[i],".html"))
 
-#stat <- EntrieSurfaceByAge(surface, 'youngest', round[i])
-#write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieSurfaceByAge",round[i],".html"))
+
+stat <- EntrieSurfaceByAge(surface, 'youngest', round[i])
+write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieSurfaceByAge",round[i],".html"))
 
 stat <-EntrieTourByAge("Australian Open", 'youngest', round[i])
 write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieTourByAge",round[i],".html"))
@@ -257,7 +258,6 @@ write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.ht
 #}
 #############################################################################################################################################################################
 
-
-stat <- PlayerStats('Rafael Nadal')
-#write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsTour", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <- CountTourRound("Australian Open", 'R32')
+#write.xlsx(stat, file = "CounterTracker.xlsx", sheetName=paste("Tour",round[i]), append=TRUE)
+write_tableHTML(tableHTML(stat), file = paste("Data/Count/CountTour", 'R32',".html"))
