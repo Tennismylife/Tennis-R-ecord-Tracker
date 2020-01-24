@@ -10,6 +10,8 @@ CountRoundSeason <- function() {
   ##SelectRound
   dbm <- dbm[tourney_level == 'G']
   
+  dbm <- dbm[round == 'R32']
+  
   #dbm <- dbm[winner_ioc =='ITA']
     
   wins <- dbm[,c('winner_name','tourney_id')]
@@ -25,7 +27,7 @@ CountRoundSeason <- function() {
   names(season)[2] <- "year"
   
   #select where N > 4
-  season <- season[which(N >  1)]
+  #season <- season[which(N >  1)]
   
   ## order by decreasing
   season <- season[order(-N)]
