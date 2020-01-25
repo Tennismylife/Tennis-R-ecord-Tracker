@@ -21,6 +21,10 @@ source("Wins.R")
 source("Timespan.R")
 source("Nationality.R")
 
+install.packages("Rserve")
+library(Rserve)
+Rserve()
+
 #Read database from csv
 db <- ReadData(file)
 
