@@ -21,9 +21,6 @@ source("Wins.R")
 source("Timespan.R")
 source("Nationality.R")
 
-install.packages("Rserve")
-library(Rserve)
-Rserve()
 
 #Read database from csv
 db <- ReadData(file)
@@ -32,5 +29,5 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- CountRoundSeason()
+stat <- LeastGameToWinSlam()
 write_tableHTML(tableHTML(stat), file = 'Test.html')
