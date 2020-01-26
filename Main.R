@@ -29,5 +29,5 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- LeastGameToWinSlam()
-write_tableHTML(tableHTML(stat), file = 'Test.html')
+stat <- PercentageTour("Australian Open")
+write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageTour.html')
