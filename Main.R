@@ -29,5 +29,5 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- PercentageTour("Australian Open")
-write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageTour.html')
+stat <- EntriecategoryByAge(category, 'oldest', 'QF')
+write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntriecategoryByAge",round[i],".html"))
