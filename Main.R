@@ -29,6 +29,5 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- EntriesCategory(category)
-#write.xlsx(stat, file = "EntriesTracker.xlsx", sheetName="EntriesCategory", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Entries/EntriesCategory.html')
+stat <- CountRoundSeason()
+write_tableHTML(tableHTML(stat), file = paste("Test.html"))

@@ -2,26 +2,41 @@ library(NLP)
 
 
 CountRoundSeason <- function() {
-  dbm <- db
   
   ## drop walkover matches (not countable)
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   ##SelectRound
-  dbm <- dbm[tourney_level == 'G']
+  #db <- db[tourney_level == 'G']
   
-  dbm <- dbm[round == 'R32']
+  #db <- db[round == 'R16']
   
   #dbm <- dbm[winner_ioc =='ITA']
     
-  wins <- dbm[,c('winner_name','tourney_id')]
+  wins <- db[,c('winner_name','tourney_id', 'score')]
+  
+  wins <- wins[lengths(regmatches(wins$score, gregexpr("-", wins$score))) == '5']
+  
+  losses <- db[,c('loser_name','tourney_id', 'score')]
+  
+  losses <- losses[lengths(regmatches(losses$score, gregexpr("-", losses$score))) == '5']
+  
+  names(wins)[1] <- names(losses)[1] <- "name"
+  
+  matches <- union(wins, losses)
   
   #extract year from tourney_date
-  wins$tourney_id <- stringr::str_sub(wins$tourney_id, 0 ,4)
+  matches$tourney_id <- stringr::str_sub(matches$tourney_id, 0 ,4)
   
-  names(wins)[2] <- "year"
+  names(matches)[2] <- "year"
   
-  season <- wins[, .N, by = list(wins$winner_name, wins$year)]
+  #matches <- matches[year == '2020']
+  
+  print(matches)
+  
+  season <- matches[, .N, by = list(matches$name, matches$year)]
+  
+  print(season)
   
   names(season)[1] <- "player"
   names(season)[2] <- "year"
