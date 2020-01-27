@@ -29,5 +29,6 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- EntriecategoryByAge(category, 'oldest', 'QF')
-write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntriecategoryByAge",round[i],".html"))
+stat <- EntriesCategory(category)
+#write.xlsx(stat, file = "EntriesTracker.xlsx", sheetName="EntriesCategory", append=TRUE)
+write_tableHTML(tableHTML(stat), file = 'Data/Entries/EntriesCategory.html')

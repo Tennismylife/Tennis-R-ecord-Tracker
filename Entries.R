@@ -93,9 +93,11 @@ EntriesCategory <- function(category) {
   ## sum the wins and losses into a new column played
   res <- res[, entries:=wins+losses]
   
+  res <- res[,c('name','entries')]
+  
   ## order by decreasing total matches
   setorder(res, -entries)
-  res <- res[1:100,]
+  res <- res[1:20,]
   print(res)
 }
 
