@@ -332,3 +332,46 @@ WinnerInATourByNation <- function(){
 }
 
 
+Most5Setter <- function() {
+  
+  ## drop walkover matches (not countable)
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  
+  ##SelectRound
+  db <- db[tourney_level == 'G']
+  
+  #db <- db[round == 'R16']
+  
+  #dbm <- dbm[winner_ioc =='ITA']
+  
+  wins <- db[,c('winner_name','tourney_id', 'score')]
+  
+  wins <- wins[lengths(regmatches(wins$score, gregexpr("-", wins$score))) == '5']
+  
+  losses <- db[,c('loser_name','tourney_id', 'score')]
+  
+  losses <- losses[lengths(regmatches(losses$score, gregexpr("-", losses$score))) == '5']
+  
+  names(wins)[1] <- names(losses)[1] <- "name"
+  
+  matches <- union(wins, losses)
+  
+  #extract year from tourney_date
+  matches$tourney_id <- stringr::str_sub(matches$tourney_id, 0 ,4)
+  
+  names(matches)[2] <- "year"
+  
+  #matches <- matches[year == '2020']
+  
+  print(matches)
+  
+  season <- matches[, .N, by = list(matches$name, matches$year)]
+  
+  count <- matches[, .N, by = matches$name]
+  
+  count <- count[order(-N)]
+  
+  print(count)
+  
+}
+

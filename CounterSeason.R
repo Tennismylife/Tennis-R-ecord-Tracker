@@ -7,7 +7,7 @@ CountRoundSeason <- function() {
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   ##SelectRound
-  #db <- db[tourney_level == 'G']
+  db <- db[tourney_level == 'G']
   
   #db <- db[round == 'R16']
   
@@ -35,6 +35,9 @@ CountRoundSeason <- function() {
   print(matches)
   
   season <- matches[, .N, by = list(matches$name, matches$year)]
+  
+  count <- matches[, .N, by = matches$name]
+  count <- count[order(-N)]
   
   print(season)
   
@@ -65,6 +68,6 @@ CountRoundSeason <- function() {
   #select 1st 20
   mm <- mm[1:40,]
   
-  print(mm)
+  print(count)
   
 }
