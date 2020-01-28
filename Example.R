@@ -375,3 +375,17 @@ Most5Setter <- function() {
   
 }
 
+
+NoBig3inQFs <- function() {
+  db <- db[tourney_level == 'G']
+  db <- db[round == 'R16']
+  db <- db[winner_name=='Rafael Nadal' | winner_name=='Roger Federer' | winner_name=='Novak Djokovic']
+  
+  #extract year from tourney_date
+  db$tourney_id <- stringr::str_sub(db$tourney_id, 0 ,4)
+  
+  db <-  db[,c('tourney_name','tourney_id','winner_name')]
+
+  print(db)
+  
+}

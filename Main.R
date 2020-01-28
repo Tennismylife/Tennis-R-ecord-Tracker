@@ -29,5 +29,5 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- Most5Setter()
+stat <- NoBig3inQFs()
 write_tableHTML(tableHTML(stat), file = paste("Test.html"))
