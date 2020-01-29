@@ -58,6 +58,13 @@ AverageAgeH2HRound <- function() {
   
   res <- db[, averageage:=(winner_age+loser_age)/2]
   
+  #extract year from tourney_date
+  res$tourney_id <- stringr::str_sub(res$tourney_id, 0 ,4)
+  
+  
+  ## order by decreasing total matches
+  setorder(res, -averageage)
+  
   res <- res[,c("tourney_name", "tourney_id", "round", "winner_ioc", "winner_name", "winner_age", "loser_ioc", "loser_name", "loser_age", "averageage")]
   
 }

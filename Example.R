@@ -116,8 +116,6 @@ res <- res[,c("winner_name", "tourney_id", "tourney_name", "tourney_date", "winn
 dbm <- db[tourney_level=='G' & !round=='SF' & !round=='F']
 wins <- match_df(dbm, res)
 
-print(wins)
-
 for(i in 1:length(wins$score))
 {
 wins$score[i] <- gsub('W/O', '0-0 0-0', wins$score[i])
@@ -144,20 +142,18 @@ wins$score[i]<- unlist(total)
 
 wins$score <- as.numeric(as.character(unlist(wins$score)))
 
-print(wins)
-
 #calculate sum by edition
-lostgame <- aggregate(wins$score, by=list(tourney_id=wins$tourney_id, winner_name=wins$winner_name), FUN=sum)
-
+lostgame <- aggregate(wins$minutes, by=list(tourney_id=wins$tourney_id, winner_name=wins$winner_name), FUN=sum)
 
 names(lostgame)[3] <- "games"
 
-print(lostgame)
 
-res <- db[round =='F' & tourney_level == 'G']
+res <- db[round =='QF' & tourney_level == 'G' & winner_name == 'Roger Federer']
 officialName <- unique(res[,c('tourney_id', 'tourney_name')])
 
 lostgame <- join(officialName, lostgame, by="tourney_id")
+
+print(lostgame)
 
 #extract year from tourney_id
 lostgame$tourney_id <- stringr::str_sub(lostgame$tourney_id, 0 ,4)
