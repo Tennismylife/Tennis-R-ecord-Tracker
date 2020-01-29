@@ -50,3 +50,17 @@ AverageAgeTour <- function(tournament1, tournament2, tournament3, stage) {
   #ggsave("av-ggplot.png")
 }
 
+
+AverageAgeH2HRound <- function() {
+  
+  db <- db[round == 'F']
+  db <- db[tourney_level == 'G']
+  
+  res <- db[, averageage:=(winner_age+loser_age)/2]
+  
+  res <- res[,c("tourney_name", "tourney_id", "round", "winner_ioc", "winner_name", "winner_age", "loser_ioc", "loser_name", "loser_age", "averageage")]
+  
+}
+  
+  
+  
