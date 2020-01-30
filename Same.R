@@ -3,18 +3,19 @@ library(stringr)
 SameTournamentRound <- function(stage) {
   db <- removeTeamEvents(db)
   
-  dbm <- db
+  db <- db[tourney_level == 'G']
+  
   ## get round matches
   if(stage !='W' & stage !='0')
-    dbm <- dbm[round == stage]
+    db <- db[round == stage]
   
   if(stage =='W')
-    dbm <- dbm[round == 'F']
+    db <- db[round == 'F']
   
-  wins <- dbm[,c('winner_name','tourney_id', 'tourney_name')]
+  wins <- db[,c('winner_name','tourney_id', 'tourney_name')]
   
   if(stage !='W')
-  losses <- dbm[,c('loser_name','tourney_id', 'tourney_name')]
+  losses <- db[,c('loser_name','tourney_id', 'tourney_name')]
   
   #extract id from tourney_id
   wins$tourney_id <- sub("^[^-]*", "", wins$tourney_id)
