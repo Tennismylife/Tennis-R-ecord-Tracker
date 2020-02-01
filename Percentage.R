@@ -250,19 +250,21 @@ PercentageSameSurface <- function() {
 
 PercentageSameTour <- function() {
   db <- removeTeamEvents(db)
-  dbm <- db
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   
-  dbm <- dbm[tourney_level =='G']
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  
+  db <- db[tourney_level =='G']
   
   #extract year from tourney_date
-  dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 5 ,9)
+  db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,9)
   
   ## wins
-  wins <- dbm[,.N, by=list(winner_name, tourney_id)]
-  
+  wins <- db[,.N, by=list(winner_name, tourney_id)]
+
   ## losses
-  losses <- dbm[,.N, by=list(loser_name, tourney_id)]
+  losses <- db[,.N, by=list(loser_name, tourney_id)]
+  
+  print(losses)
   
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
@@ -272,11 +274,10 @@ PercentageSameTour <- function() {
   ## merge the tables by "name"
   res <- merge(wins, losses, by = c("name", "tourney_id"))
   
-  officialName <- unique(dbm[,c('tourney_id', 'tourney_name')])
+  officialName <- unique(db[,c('tourney_id', 'tourney_name')])
   
   res <- join(officialName, res, by="tourney_id")
   
-  print(res)  
   
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
@@ -292,6 +293,7 @@ PercentageSameTour <- function() {
   res$percentage <- substr(res$percentage, 0, 5)
   res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
 
+  res$percentage <- paste(res$percentage, "%")
   
   ## order by decreasing total matches
   setorder(res, -percentage)

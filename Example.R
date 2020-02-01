@@ -110,10 +110,10 @@ print(timeoncourt)
 ###################################################################### LEAST GAME TO WIN A SLAM ##################################################################
 
 LeastGameToRound <- function() {
-res <- db[round =='QF' & tourney_level=='G' & winner_name == 'Roger Federer']
+res <- db[round =='SF' & tourney_level=='G' & winner_name == 'Novak Djokovic']
 res <- res[,c("winner_name", "tourney_id", "tourney_name", "tourney_date", "winner_name")]
 
-dbm <- db[tourney_level=='G' & !round=='SF' & !round=='F']
+dbm <- db[tourney_level=='G' & !round=='F']
 wins <- match_df(dbm, res)
 
 for(i in 1:length(wins$score))
@@ -148,7 +148,7 @@ lostgame <- aggregate(wins$minutes, by=list(tourney_id=wins$tourney_id, winner_n
 names(lostgame)[3] <- "games"
 
 
-res <- db[round =='QF' & tourney_level == 'G' & winner_name == 'Roger Federer']
+res <- db[round =='SF' & tourney_level == 'G' & winner_name == 'Novak Djokovic']
 officialName <- unique(res[,c('tourney_id', 'tourney_name')])
 
 lostgame <- join(officialName, lostgame, by="tourney_id")
@@ -160,7 +160,7 @@ lostgame$tourney_id <- stringr::str_sub(lostgame$tourney_id, 0 ,4)
 
 lostgame <- lostgame[,c("tourney_name", "tourney_id", "winner_name", "games")]
 
-lostgame <- arrange(lostgame, -lostgame$games)
+lostgame <- arrange(lostgame, lostgame$games)
 
 print(lostgame)
 
