@@ -8,7 +8,7 @@ CountRoundSeason <- function() {
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   
   ##SelectRound
-  dbm <- dbm[tourney_level == 'G']
+  #dbm <- dbm[tourney_level == 'G']
   
   dbm <- dbm[round == 'SF']
   
@@ -48,7 +48,7 @@ CountRoundSeason <- function() {
   mm$seasons <-  as.character(mm$seasons)
   
   #select 1st 20
-  mm <- mm[1:40,]
+  mm <- mm[1:20,]
   
   print(mm)
   

@@ -253,8 +253,6 @@ PercentageSameTour <- function() {
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
-  db <- db[tourney_level =='G']
-  
   #extract year from tourney_date
   db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,9)
   
@@ -263,8 +261,7 @@ PercentageSameTour <- function() {
 
   ## losses
   losses <- db[,.N, by=list(loser_name, tourney_id)]
-  
-  print(losses)
+
   
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
@@ -272,15 +269,16 @@ PercentageSameTour <- function() {
   names(losses)[3] <- "losses"
   
   ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name", "tourney_id"))
-  
-  officialName <- unique(db[,c('tourney_id', 'tourney_name')])
-  
-  res <- join(officialName, res, by="tourney_id")
+  res <- merge(wins, losses, all = TRUE)
   
   
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
+  
+  officialName <- unique(db[,c('tourney_id', 'tourney_name')])
+  
+  res <- join(officialName, res, by="tourney_id")
+
   
   ## sum the wins and losses into a new column played
   res <- res[, played:=wins+losses]
@@ -290,13 +288,14 @@ PercentageSameTour <- function() {
   
   res <- res[, percentage:=wins/played*100]
   
+  print(res)
+  
+  setorder(res, -percentage)
+  
   res$percentage <- substr(res$percentage, 0, 5)
   res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
 
   res$percentage <- paste(res$percentage, "%")
-  
-  ## order by decreasing total matches
-  setorder(res, -percentage)
   
   res <- res[,c("name", "tourney_name", "wins", "losses", "played", "percentage")]
   
