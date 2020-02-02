@@ -219,6 +219,8 @@ PercentageSameSurface <- function() {
   ## losses
   losses <- dbm[,.N, by=list(loser_name, surface)]
   
+  print(wins)
+  
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
   names(wins)[3] <- "wins"
@@ -234,7 +236,7 @@ PercentageSameSurface <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  res <- res[played > 50]
+  #sres <- res[played > 50]
   
   res <- res[, percentage:=wins/played*100]
   
@@ -271,11 +273,17 @@ PercentageSameTour <- function() {
   ## merge the tables by "name"
   res <- merge(wins, losses, all = TRUE)
   
-  
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
   
+  #get the official tournament name
   officialName <- unique(db[,c('tourney_id', 'tourney_name')])
+  officialName <-officialName %>% 
+    mutate_all(funs(str_replace(., "WCT", "")))
+  officialName <-  officialName %>%
+    arrange(tourney_id, tourney_name) %>% #Arranging according ID and NUM
+    group_by(tourney_id) %>% #Grouping by ID
+    summarise_all(funs(last(.))) #Selecting the last rows of all variables
   
   res <- join(officialName, res, by="tourney_id")
 
