@@ -255,6 +255,8 @@ PercentageSameTour <- function() {
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
+  db <- db[tourney_level == 'G' & round == 'F']
+  
   #extract year from tourney_date
   db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,9)
   
