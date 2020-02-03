@@ -115,6 +115,7 @@ CountCategoryRound <- function(category, stage) {
   
   dbm <- db
   dbm <- dbm[tourney_level == category]
+  dbm <- dbm[surface == 'Hard']
   
   if(stage != 'W')
     dbm <- dbm[round == stage]

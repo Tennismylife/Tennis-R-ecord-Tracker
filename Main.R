@@ -20,6 +20,7 @@ source("Season.R")
 source("Wins.R")
 source("Timespan.R")
 source("Nationality.R")
+source("Least.R")
 
 
 #Read database from csv
@@ -29,5 +30,5 @@ category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- PercentageCategory('G')
+stat <- LeastGameToWinSlam()
 write_tableHTML(tableHTML(stat), file = paste("Test.html"))
