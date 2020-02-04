@@ -8,7 +8,7 @@ CountRoundSeason <- function() {
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
   
   ##SelectRound
-  dbm <- dbm[tourney_level == 'G']
+  #dbm <- dbm[tourney_level == 'G']
   
   dbm <- dbm[round == 'F']
   
