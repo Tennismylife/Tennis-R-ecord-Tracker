@@ -4,14 +4,18 @@ library(data.table)
 library(dplyr)
 library(plyr)
 
-file="C:/Users/Andrea/Documents/GitHub/ATP-Tennis-Record/Java/ATPStats/newdb3.csv"
-
 #Function to read all database from csv
-ReadData <- function(file) {
-  require(data.table)
+
+ParallelReader <- function(){
+  years  <- (1968:2020)
   
-  ## read the data
-  read_timing <- system.time(data <- data.table::fread(file, fill=TRUE)) ## removed fill=TRUE since I corrected the database!
-  cat(paste(":: Read", nrow(data),"matches done in", round(read_timing[3], 5), "s\n"))
-  return(data)
+  files <- paste0("https://raw.githubusercontent.com/Tennismylife/TML-Database/master/", years, ".csv")
+  
+  print(files)
+  
+  #create f, which is a list of data frames
+  f <- lapply(files, function(m) df <- fread(m, na="", quote=F, fill = TRUE))
+  
+  #stick them all together with do.call-rbind
+  f_combine <- do.call("rbind", f)
 }

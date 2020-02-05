@@ -18,7 +18,7 @@ source("AverageAge.R")
 source("Percentage.R")
 
 #Read database from csv
-db <- ReadData(file)
+db <- ParallelReader()
 category <- "G"
 surface <- "Hard"
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")

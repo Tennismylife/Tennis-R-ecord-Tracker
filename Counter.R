@@ -113,27 +113,23 @@ CountSurfaceRound <- function(court, stage) {
 
 CountCategoryRound <- function(category, stage) {
   
-  dbm <- db
-  dbm <- dbm[tourney_level == category]
-  
-  dbm <- dbm[winner_age > 30]
-  
+  db <- db[tourney_level == category]
   
   if(stage != 'W')
-    dbm <- dbm[round == stage]
+    db <- db[round == stage]
   
   if(stage == 'W')
-    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)']
+    db <- db[round == 'F' & score!='ABN' & score!='(ABN)']
   
   ## wins
-  wins <- dbm[,.N, by=winner_name]
+  wins <- db[,.N, by=winner_name]
   names(wins)[1] <- "name"
   names(wins)[2] <- "wins"
   
   #losses
   if(stage != 'W')
   {
-    losses <- dbm[,.N, by= loser_name]
+    losses <- db[,.N, by= loser_name]
     names(wins)[1] <- names(losses)[1] <- "name"
   }
   

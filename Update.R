@@ -22,7 +22,7 @@ source("Timespan.R")
 source("Nationality.R")
 
 #Read database from csv
-db <- ReadData(file)
+db <- ParallelReader()
 
 category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
