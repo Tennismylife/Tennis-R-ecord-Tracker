@@ -11,5 +11,5 @@ splitdf <- split(db, db$year)
 for(i in 1:length(splitdf))
 {
   filename <- paste0(i+1967, ".csv")
-  write.csv(splitdf[[i]], filename)
+  write.csv(splitdf[[i]], filename, na="", quote=F, row.names = FALSE)
 }
