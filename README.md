@@ -71,6 +71,7 @@ Scripts to calculate: minutes breaks, games (often used in Slams)
 Scripts to focuse the records on winners and losers nationality (on winner_ioc and loser_ioc data)
 
 
+<a href="https://ibb.co/s6ZVRd3"><img src="https://i.ibb.co/k9tSBsc/Immagine.png" alt="Immagine" border="0"></a>
 
 
 
