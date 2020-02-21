@@ -1,9 +1,9 @@
 # Tennis-R-ecord-Tracker
 A project to find all tennis records in R
 
-This work is based on a theory explained on Tennismylife website. All collected records are stored in the HTML files available in directory named Data. To update it you can run the R script Update.R
+This work is based on a theory explained on Tennismylife website. All collected records are stored in the HTML files available in directory named 'Data'. To update it you can run the R script Update.R. After this you can navigate through record starting from 'Index.html'
 
-: $ Rscript Update.R
+:$ Rscript Update.R
 
 According to "Recordology" all functions are splitted in many R files to reasearch better the results and to use it with the sub-categories explained in this article.
 
