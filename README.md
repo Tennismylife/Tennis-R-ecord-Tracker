@@ -5,13 +5,13 @@ This work is based on a theory explained on Tennismylife website. All collected 
 
 : $ Rscript Update.R
 
-According to "Recordology" all functions are splitted in many R files to reasearch better the results and to use it with the sub-categories explained in this article, and to use it eventually as APIs. For this reason there isn't a code refactoring.
+According to "Recordology" all functions are splitted in many R files to reasearch better the results and to use them with the sub-categories explained in this article, and to use them eventually as APIs. For this reason there isn't a code refactoring.
 
-The 1st step is having a consistent and updated live database. This is available on our account in the repository https://github.com/Tennismylife/TML-Database
+1st step is having a consistent and live updated database. This is available on our account in the repository https://github.com/Tennismylife/TML-Database
 
 * Reader.R 
 
-The 2nd step is reading all the database rows. Thank to parallel instructions it is possible. You can read all the csvs quickly and storing them in your R workspace
+2nd step is reading all the database rows. Thank to parallel instructions it is possible. You can read all the csvs quickly and storing them in your R workspace
 
 * Played.R
 
@@ -36,7 +36,7 @@ Collects all scripts to count the rounds (including triumph) collected by player
 
 * Age. R
 
-Implements the big categories known as "oldest" and "youngest". Setting a decreasing ordering or a increascing one you can order the records by players age
+Implements the big categories known as "oldest" and "youngest". Setting a decreasing ordering or an increascing one you can order the records by players age
 
 * AverageAgeTour.R
 
@@ -60,11 +60,11 @@ A particular script with a function to calculate the number of rounds reached by
 
 * Example.R
 
-Collection of miscellaneous functions to find records not categorized
+Collection of miscellaneous functions to find records, not categorized
 
 * Least.R
 
-Scripts to calculate: minutes, breaks, games to reach a round including triumph (often used in Slams)
+Scripts to calculate: minutes, breaks, games to reach a round, including triumph (often used in Slams)
 
 * Nationality.R
 
