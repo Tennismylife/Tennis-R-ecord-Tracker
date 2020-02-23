@@ -33,7 +33,6 @@ EntriesSeason <- function() {
   #In a season
   #res <- res [year == '2019']
   
-  
   season <- res[, .N, by = list(res$name, res$year)]
   
   names(season)[1] <- "Player"
@@ -41,6 +40,33 @@ EntriesSeason <- function() {
   names(season)[3] <- "Entries"
   
   entry <- season[order(-Entries)] 
+  
+  entry <- entry[1:100,]
+  
+  print(entry)
+  
+}
+
+SameSeasonWins <- function() {
+  
+  #tournaments won
+  wins <- db[,c('winner_name','tourney_id')]
+  
+  #extract year from tourney_date
+  wins$tourney_id <- stringr::str_sub(wins$tourney_id, 0 ,4)
+
+  
+  names(wins)[1] <- "name"
+  names(wins)[2] <- "year"
+  
+  sameseason <- wins[, .N, by = list(wins$name, wins$year)]
+  
+  names(sameseason)[1] <- "Player"
+  names(sameseason)[2] <- "Season"
+
+  print(sameseason) 
+  
+  entry <- sameseason[order(-N)] 
   
   entry <- entry[1:100,]
   

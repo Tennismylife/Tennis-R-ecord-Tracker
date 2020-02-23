@@ -57,6 +57,9 @@ CountOverallRound <- function(stage) {
 
 
 CountSurfaceRound <- function(court, stage) {
+  
+  db <- removeTeamEvents(db)
+  
   dbm <- db
   dbm <- dbm[surface == court]
   
@@ -112,6 +115,8 @@ CountSurfaceRound <- function(court, stage) {
 
 
 CountCategoryRound <- function(category, stage) {
+  
+  db <- removeTeamEvents(db)
   
   db <- db[tourney_level == category]
   

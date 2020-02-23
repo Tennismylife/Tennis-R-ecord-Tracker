@@ -445,7 +445,7 @@ print(data)
 
 write.csv(data, file = "C:/Users/Andrea/Documents/TennisRecordTracker/Sackmann.csv", na="", quote=F, row.names = FALSE)
 #####################################################################################################################################################################
-}
+
 
 
 file="C:/Users/Andrea/git/repository/ATPStats/newdb3.csv"
@@ -500,3 +500,14 @@ print(string)
 
 write.csv(id_collection, file = "C:/Users/Andrea/git/repository/ATPStats/id_collection.csv", na="", quote=F, row.names = FALSE)
 write.csv(id_duplicate, file = "C:/Users/Andrea/git/repository/ATPStats/id_duplicate.csv", na="", quote=F, row.names = FALSE)
+
+}
+
+db <- ParallelReader()
+
+db <- db[is.na(db$loser_age)]
+
+write.csv(db, file = "C:/Users/Andrea/Documents/GitHub/ATP-Tennis-Record/Java/ATPStats/noflag.csv", na="", quote=F, row.names = FALSE)
+
+print(db)
+

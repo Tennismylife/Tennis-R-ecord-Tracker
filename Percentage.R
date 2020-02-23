@@ -1,15 +1,19 @@
 PercentageOverall <- function() {
-  dbm <- db
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+
+  db <-removeTeamEvents(db)
   
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  
+  #db <- db[round == 'F']
   
   #extract tourney from tourney_id
-  dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 5 ,3)
+  db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,3)
   
   ## wins
-  wins <- dbm[,.N, by=winner_name]
+  wins <- db[,.N, by=winner_name]
+  
   ## losses
-  losses <- dbm[,.N, by= loser_name]
+  losses <- db[,.N, by= loser_name]
   
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
@@ -26,7 +30,7 @@ PercentageOverall <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  res <- res[played > 20]
+  #res <- res[played > 1]
   
   res <- res[, percentage:=wins/played*100]
   
@@ -35,8 +39,10 @@ PercentageOverall <- function() {
   
   ## order by decreasing total matches
   setorder(res, -percentage)
-  res <- res[1:100,]
+  
+  #res <- res[1:100,]
   print(res)
+
 }
 
 
@@ -48,6 +54,7 @@ PercentageSurface <- function(court) {
   
   ## wins
   wins <- dbm[,.N, by=winner_name]
+  
   ## losses
   losses <- dbm[,.N, by= loser_name]
   
@@ -75,7 +82,9 @@ PercentageSurface <- function(court) {
   
   ## order by decreasing total matches
   setorder(res, -percentage)
+  
   res <- res[1:100,]
+  
   print(res)
 }
 
@@ -88,6 +97,7 @@ PercentageCategory <- function(category) {
   
   ## wins
   wins <- db[,.N, by=winner_name]
+  
   ## losses
   losses <- db[,.N, by= loser_name]
   
@@ -115,6 +125,7 @@ PercentageCategory <- function(category) {
   
   ## order by decreasing total matches
   setorder(res, -percentage)
+  
   res <- res[1:100,]
   print(res)
 }
@@ -168,8 +179,6 @@ PercentageSameSeason <- function() {
   #extract year from tourney_date
   dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 0 ,4)
   
-  dbm <- dbm[tourney_id == '2019']
-  
   ## wins
   #dbm1 <- dbm[winner_name == 'Rafael Nadal']
   wins <- dbm[,.N, by=list(winner_name, tourney_id)]
@@ -193,7 +202,7 @@ PercentageSameSeason <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  #res <- res[played > 2]
+  res <- res[played > 10]
   
   res <- res[, percentage:=wins/played*100]
   
@@ -236,7 +245,7 @@ PercentageSameSurface <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  #sres <- res[played > 50]
+  res <- res[played > 50]
   
   res <- res[, percentage:=wins/played*100]
   
@@ -254,8 +263,6 @@ PercentageSameTour <- function() {
   db <- removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
-  
-  db <- db[tourney_level == 'G' & round == 'F']
   
   #extract year from tourney_date
   db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,9)

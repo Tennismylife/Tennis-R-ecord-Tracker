@@ -206,7 +206,6 @@ SameTournamentPlayed <- function() {
   #tournaments won
   wins <- db[,c('winner_name','tourney_id','tourney_name')]
   
-  
   #tournaments lost
   losses <- unique(db[,c('loser_name','tourney_id','tourney_name')])
   
@@ -238,6 +237,84 @@ SameTournamentPlayed <- function() {
 }
 
 
+SameSurfacePlayed <- function() {
+  
+  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  
+  #tournaments won
+  wins <- db[,c('winner_name','tourney_id','tourney_name', 'surface')]
+  
+  #tournaments lost
+  losses <- unique(db[,c('loser_name','tourney_id','tourney_name', 'surface')])
+  
+  ## common name to merge with
+  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[2] <- names(losses)[2] <- "id"
+  names(wins)[3] <- names(losses)[3] <- "tournament"
+  
+  ## merge the tables by "name"
+  res <- rbind(wins, losses, all = TRUE, fill=TRUE)
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  same <- res[, .N, by = list(res$name, res$surface)]
+  
+  ## order by decreasing age
+  same <- same[order(-N)] 
+  
+  names(same)[1] <- "Player"
+  names(same)[2] <- "Surface"
+  names(same)[3] <- "N"
+  
+  #select first 20
+  same <- same[1:20,]
+  
+  print(same)
+  
+}
+
+
+SameSeasonPlayed <- function() {
+  
+  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  
+  #tournaments won
+  wins <- db[,c('winner_name','tourney_id')]
+  
+  #tournaments lost
+  losses <- db[,c('loser_name','tourney_id')]
+  
+  ## common name to merge with
+  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[2] <- names(losses)[2] <- "id"
+  
+  ## merge the tables by "name"
+  res <- rbind(wins, losses)
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  #extract year from tourney_date
+  res$year <- stringr::str_sub(res$id, 0 ,4)
+  
+  same <- res[, .N, by = list(res$name, res$year)]
+  
+  ## order by decreasing age
+  same <- same[order(-N)] 
+  
+  names(same)[1] <- "Player"
+  names(same)[2] <- "Season"
+  names(same)[3] <- "N"
+  
+  #select first 20
+  same <- same[1:20,]
+  
+  print(same)
+  
+}
+
+
 SameTournamentWins <- function() {
   db <- removeTeamEvents(db)
   
@@ -249,7 +326,7 @@ SameTournamentWins <- function() {
   ## common name to merge with
   names(wins)[1] <- "name"
   names(wins)[2] <- "id"
-  names(wins)[3] <- "tourname"
+  names(wins)[3] <- "tournament"
   
   ## merge the tables by "name"
   res <- wins
@@ -257,13 +334,49 @@ SameTournamentWins <- function() {
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
   
-  same <- res[, .N, by = list(res$name, res$tourname)]
+  same <- res[, .N, by = list(res$name, res$tournament)]
   
   ## order by decreasing age
   same <- same[order(-N)] 
   
   names(same)[1] <- "Player"
   names(same)[2] <- "Tournament"
+  names(same)[3] <- "N"
+  
+  #select first 20
+  same <- same[1:20,]
+  
+  print(same)
+  
+}
+
+
+SameSurfaceWins <- function() {
+  db <- removeTeamEvents(db)
+  
+  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  
+  #tournaments won
+  wins <- db[,c('winner_name','tourney_id','surface')]
+  
+  ## common name to merge with
+  names(wins)[1] <- "name"
+  names(wins)[2] <- "id"
+  names(wins)[3] <- "surface"
+  
+  ## merge the tables by "name"
+  res <- wins
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  same <- res[, .N, by = list(res$name, res$surface)]
+  
+  ## order by decreasing age
+  same <- same[order(-N)] 
+  
+  names(same)[1] <- "Player"
+  names(same)[2] <- "Surface"
   names(same)[3] <- "N"
   
   #select first 20

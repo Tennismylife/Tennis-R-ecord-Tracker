@@ -44,10 +44,6 @@ AverageAgeTour <- function(tournament1, tournament2, tournament3, stage) {
   average$x <- gsub("\\.", ",", average$x)
   
   print(average)
-
-  #ggplot(average, aes(x = tourney_id, y = x)) + geom_point() + geom_line(size = 1)
-  
-  #ggsave("av-ggplot.png")
 }
 
 

@@ -22,16 +22,16 @@ source("Timespan.R")
 source("Nationality.R")
 source("Least.R")
 
-#Read database from csv
-source("Reader.R")
-db <- ParallelReader()
 
-print(db)
+#Read database from csv
+db <- ParallelReader()
 
 category <- "G"
 surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
-stat <- CountCategoryRound(category, 'W')
+
+
+stat <- PercentageOverall()
 write_tableHTML(tableHTML(stat), file = paste("Test.html"))
 

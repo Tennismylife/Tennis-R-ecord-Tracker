@@ -1,13 +1,12 @@
 ################################################################ PLAYED #####################################################################################
 
 PlayedOverall <- function() {
-  dbm <- db
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   ## wins
-  wins <- dbm[,.N, by=winner_name]
+  wins <- db[,.N, by=winner_name]
   ## losses
-  losses <- dbm[,.N, by= loser_name]
+  losses <- db[,.N, by= loser_name]
   
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "Player"

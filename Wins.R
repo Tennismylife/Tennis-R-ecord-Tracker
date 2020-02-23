@@ -36,13 +36,18 @@ WinsTour <- function(tournament, tournament2, tournament3) {
 winsSurface <- function(court) {
   ## only select tournaments in the previously defined pool
   dbm <- db[surface == court]
+  
   ## drop walkover matches (not countable)
   dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+  
   ## count occurrences of won matches
   res <- dbm[,.N, by=winner_name]
+  
   ## order by decreasing
   setorder(res, -N, na.last=FALSE)
+  
   res <- res[1:20,]
+  
   print(res)
 }
 

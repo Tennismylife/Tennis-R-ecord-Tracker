@@ -57,10 +57,11 @@ stat <- WinsTour("Australian Open","Australian Open", "Australian Open")
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsTour", append=TRUE)
 write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsTour.html')
 
-surface <- 'Hard'
-stat <- winsSurface(surface)
-#write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="winsSurface", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsSurface.html')
+for (i in 1:length(surface)) {
+  stat <- winsSurface(surface[i])
+  #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="winsSurface", append=TRUE)
+  write_tableHTML(tableHTML(stat), file = paste("Data//Wins/WinsSurface",surface[i],".html"))
+}
 
 stat <- WinsOverall()
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsOverall", append=TRUE)
@@ -79,9 +80,11 @@ stat <- EntriesTournament("Australian Open","Australian Open", "Australian Open"
 #write.xlsx(stat, file = "EntriesTracker.xlsx", sheetName="EntriesTournament", append=TRUE)
 write_tableHTML(tableHTML(stat), file = 'Data/Entries/EntriesTournament.html')
 
-stat <- EntriesSurface(surface)
+for (i in 1:length(surface)) {
+stat <- EntriesSurface(surface[i])
 #write.xlsx(stat, file = "EntriesTracker.xlsx", sheetName="EntriesSurface", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Entries/EntriesSurface.html')
+write_tableHTML(tableHTML(stat), file = paste("Data//Entries/EntriesSurface",surface[i],".html"))
+}
 
 stat <- EntriesOverall()
 #write.xlsx(stat, file = "EntriesTracker.xlsx", sheetName="EntriesOverall", append=TRUE)
@@ -96,9 +99,11 @@ for (i in 1:length(round)) {
   #write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespanOverallEntry"), append=FALSE)
   write_tableHTML(tableHTML(stat), file = paste("Data/Timespan/TimespanOverall",round[i],".html"))
   
-  stat <- TimespaSurfaceEntry(surface, round[i])
-  #write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespaSurfaceEntry"), append=FALSE)
-  write_tableHTML(tableHTML(stat), file = paste("Data/Timespan/TimespanSurface",round[i],".html"))
+  for (j in 1:length(surface)) {
+    stat <- TimespaSurfaceEntry(surface[j], round[i])
+    #write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespaSurfaceEntry"), append=FALSE)
+    write_tableHTML(tableHTML(stat), file = paste("Data/Timespan/TimespanSurface",surface[j],round[i],".html"))
+  }
   
   stat <- TimespanCategoryEntry(category, round[i])
   #write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespanCategoryEntry"), append=TRUE)
@@ -118,9 +123,11 @@ stat <- TimespaCategoryWins(category)
 #write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespaCategoryWins"), append=TRUE)
 write_tableHTML(tableHTML(stat), file = 'Data/Timespan/TimespaCategoryWins.html')
 
-stat <- TimespaSurfaceWins(surface)
+for (j in 1:length(surface)) {
+stat <- TimespaSurfaceWins(surface[j])
 #write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespaSurfaceWins"), append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Timespan/TimespaSurfaceWins.html')
+write_tableHTML(tableHTML(stat), file = paste("Data/Timespan/TimespaSurface", surface[j], "Wins.html"))
+}
 
 stat <- TimespanTournamentWins("Australian Open", "Australian Open", "Australian Open")
 #write.xlsx(stat, file = "TimespanTracker.xlsx", sheetName=paste("TimespanTournamentWins"), append=TRUE)
@@ -138,9 +145,11 @@ for (i in 1:length(round)) {
   #write.xlsx(stat, file = "CounterTracker.xlsx", sheetName=paste("Tour",round[i]), append=TRUE)
   write_tableHTML(tableHTML(stat), file = paste("Data/Count/CountTour",round[i],".html"))
   
-  stat <- CountSurfaceRound(surface, round[i])
-  #write.xlsx(stat, file = "CounterTracker.xlsx", sheetName=paste("Surf",round[i]), append=TRUE)
-  write_tableHTML(tableHTML(stat), file = paste("Data/Count/CountSurface",round[i],".html"))
+  for (j in 1:length(surface)) {
+    stat <- CountSurfaceRound(surface[j], round[i])
+    #write.xlsx(stat, file = "CounterTracker.xlsx", sheetName=paste("Surf",round[i]), append=TRUE)
+    write_tableHTML(tableHTML(stat), file = paste("Data/Count/CountSurface",surface[j],round[i],".html"))
+  }
   
   stat <- CountCategoryRound(category, round[i])
   #write.xlsx(stat, file = "CounterTracker.xlsx", sheetName=paste("Cat",round[i]), append=TRUE)
@@ -156,8 +165,10 @@ for (i in 1:length(round))
   stat <- EntriecategoryByAge(category, 'oldest', round[i])
   write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntriecategoryByAge",round[i],".html"))
   
-  stat <- EntrieSurfaceByAge(surface, 'oldest', round[i])
-  write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",round[i],".html"))
+  for (j in 1:length(surface)) {
+  stat <- EntrieSurfaceByAge(surface[j], 'oldest', round[i])
+  write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieSurfaceByAge",surface[j],round[i],".html"))
+  }
   
   stat <-EntrieTourByAge("Australian Open", 'oldest', round[i])
   write_tableHTML(tableHTML(stat), file = paste("Data/Oldest/OldestEntrieTourByAge",round[i],".html"))
@@ -172,9 +183,10 @@ for (i in 1:length(round))
   stat <- EntriecategoryByAge(category, 'youngest', round[i])
   write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntriecategoryByAge",round[i],".html"))
   
-  
-  stat <- EntrieSurfaceByAge(surface, 'youngest', round[i])
-  write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieSurfaceByAge",round[i],".html"))
+  for (j in 1:length(surface)) {
+  stat <- EntrieSurfaceByAge(surface[j], 'youngest', round[i])
+  write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieSurfaceByAge",surface[j],round[i],".html"))
+  }
   
   stat <-EntrieTourByAge("Australian Open", 'youngest', round[i])
   write_tableHTML(tableHTML(stat), file = paste("Data/Youngest/YoungestEntrieTourByAge",round[i],".html"))
@@ -192,8 +204,10 @@ for (i in 1:length(round))
 stat <- PercentageOverall()
 write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageOVerall.html')
 
-stat <- PercentageSurface(surface)
-write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSurface.html')
+for (j in 1:length(surface)) {
+stat <- PercentageSurface(surface[j])
+write_tableHTML(tableHTML(stat), file = paste("Data/Percentage/PercentageSurface", surface[j], ".html"))
+}
 
 stat <- PercentageCategory(category)
 write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageCategory.html')
@@ -227,6 +241,15 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 stat <-SameSurfaceEntries()
 write_tableHTML(tableHTML(stat), file = 'Data/SameSurface/SameSurfaceEntries.html')
 
+stat <- SameSurfacePlayed()
+write_tableHTML(tableHTML(stat), file = paste("Data/SameSurface/SameSurfacePlayed.html"))
+
+stat <- SameSurfaceWins()
+write_tableHTML(tableHTML(stat), file = paste("Data/SameSurface/SameSurfaceWins.html"))
+
+stat <- SameSeasonPlayed()
+write_tableHTML(tableHTML(stat), file = paste("Data/SameSeason/SameSeasonPlayed.html"))
+
 stat <-PercentageSameSurface()
 write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSurface.html')
 
@@ -243,6 +266,9 @@ for (i in 1:length(round))
 
 stat <- EntriesSeason()
 write_tableHTML(tableHTML(stat), file = 'Data/SameSeason/SameSeasonEntries.html')
+
+stat <- SameSeasonWins()
+write_tableHTML(tableHTML(stat), file = 'Data/SameSeason/SameSeasonWins.html')
 
 stat <- PercentageSameSeason()
 write_tableHTML(tableHTML(stat), file = 'Data/Percentage/PercentageSameSeason.html')
