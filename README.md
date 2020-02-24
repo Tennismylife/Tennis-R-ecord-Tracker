@@ -3,9 +3,9 @@ A project to find all tennis records in R
 
 To run R project in your laptop it's necessary having R-Studio available on this link https://rstudio.com/products/rstudio/download/#download
 
-After downloading and installing, you have to create a 'New Project' and import all files included in the main repository
+After downloading and installing, you have to create a 'New Project' and importing all files included in the main repository
 
-This work is based on a theory explained on Tennismylife website. All collected records are stored in the HTML files available in directory named 'Data'. To update it you can run the R script Update.R. After this you can navigate through records starting from 'Index.html'
+This work is based on a theory explained on Tennismylife website (http://www.tennismylife.org/recordology/). All collected records are stored in the HTML files available in directory named 'Data'. To update it you can run the R script Update.R. After this you can navigate through records starting from 'Index.html'
 
 ```
 >> Rscript Update.R
