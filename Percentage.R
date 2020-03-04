@@ -1,6 +1,5 @@
 PercentageOverall <- function() {
 
-  db <-removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
   
@@ -30,15 +29,17 @@ PercentageOverall <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  #res <- res[played > 1]
+  res <- res[played > 20]
   
   res <- res[, percentage:=wins/played*100]
   
-  res$percentage <- substr(res$percentage, 0, 5)
+  res$percentage <- substr(res$percentage, 0, 7)
   res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
   
   ## order by decreasing total matches
   setorder(res, -percentage)
+  
+  res$percentage <- paste(res$percentage, "%")
   
   #res <- res[1:100,]
   print(res)

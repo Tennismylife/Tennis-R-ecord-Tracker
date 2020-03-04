@@ -10,6 +10,7 @@ source("Counter.R")
 source("CounterSeason.R")
 source("Entries.R")
 source("Example.R")
+source("Least.R")
 source("Ranking.R")
 source("Reader.R")
 source("Percentage.R")
@@ -20,7 +21,6 @@ source("Season.R")
 source("Wins.R")
 source("Timespan.R")
 source("Nationality.R")
-source("Least.R")
 
 
 #Read database from csv
@@ -31,7 +31,6 @@ surface <- c("Hard", "Clay", "Grass", "Carpet")
 round <- c("0", "R32", "R16", "QF", "SF" , "F", "W")
 
 
-
-stat <- PercentageOverall()
+stat <- NoDroppedSetTitle()
 write_tableHTML(tableHTML(stat), file = paste("Test.html"))
 

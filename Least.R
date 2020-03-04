@@ -64,50 +64,44 @@ LeastBreakToRound <- function() {
 }
 
 
-LeastGameToWinSlam <- function() {
-  res <- db[round =='F' & tourney_level == 'G' & winner_name == 'Novak Djokovic']
-  res <- res[,c("winner_name", "tourney_id", "tourney_name", "tourney_date", "winner_name")]
+LeastGameToWintour <- function() {
+  res <- db[round =='F']
+  res <- res[,c("tourney_id", "tourney_name", "winner_name")]
   
-  db <- db[tourney_level == 'G']
+  #db <- db[tourney_level == 'G']
   wins <- match_df(db, res)
   
   print(wins)
   
-  #print(wins)
-  #print(length(wins$score))
-  
-  for(i in 1:length(wins$score))
+  library(foreach)
+  foreach(i = 1:length(wins$score)) %do%  
   {
-    #print("Score")
-    #print(wins$score[i])  
     
+    #change walkover with 0 games
     wins$score[i] <- gsub('W/O', '0-0 0-0', wins$score[i])
     
+    #split to catch the sets
     set <- strsplit(wins$score[i], " ")
-    
-    #print("SET")
-    #print(set)
-    
-    for(k in 1:length(set))
+
+    foreach(k = 1:length(set)) %do%
     {
       score <- strsplit(set[[k]], "-")
     }
     
-    
-    #print("Score")
-    #print(score)
-    
     total <- 0
-    for (j in 1:length(score)) {
+    
+    #count lost games
+    foreach(j = 1:length(score)) %do%
+    {
+      #sub for tiebreaks
       score[[j]][2] <-  sub("\\(.*", "", score[[j]][2])
-      #print(score[[j]][2])
       
       score[[j]][2][is.na(score[[j]][2])] <- 0
+      
       total<-total+as.numeric(score[[j]][2])
     }
-    #print("Total")
-    #print(total)
     
+    #sub score with lost games
     wins$score[i]<- unlist(total)
   }
   
@@ -118,20 +112,87 @@ LeastGameToWinSlam <- function() {
   
   names(lostgame)[2] <- "games"
   
-  res <- db[round =='F' & tourney_level == 'G' & winner_name == 'Novak Djokovic']
+  res <- db[round =='F']
   officialName <- unique(res[,c('tourney_id', 'tourney_name', 'winner_name')])
   
   lostgame <- join(officialName, lostgame, by="tourney_id")
   
   #extract year from tourney_id
   lostgame$tourney_id <- stringr::str_sub(lostgame$tourney_id, 0 ,4)
-  
-  print(lostgame)
-  
+
   lostgame <- lostgame[,c("tourney_name", "tourney_id", "winner_name", "games")]
   
   lostgame <- arrange(lostgame, lostgame$games)
   
   print(lostgame)
   
+}
+
+
+NoDroppedSetTitle <- function() {
+  db <-  removeTeamEvents(db)
+  
+  #db <- db[tourney_level == 'G']
+  
+  res <- db[round == 'F']
+  res <- res[, c("tourney_id", "tourney_name", "winner_name")]
+  
+  wins <- match_df(db, res)
+  
+  wins$score <- gsub('W/O', '1-0 1-0 1-0', wins$score)
+  
+  
+library("foreach")  
+ foreach(i = 1:length(wins$score)) %do%
+    {
+      print(wins[i]$tourney_id)
+      
+      #split to catch the sets
+      set <- strsplit(wins$score[i], " ")
+
+      foreach(k = 1:length(set)) %dopar%
+        {
+          score <- strsplit(set[[k]], "-")
+        }
+      
+      totalLostSet <- 0
+      
+
+      registerDoParallel(cl, cores=cores)
+      foreach(j = 1:length(score)) %dopar%
+        {
+          #sub for tiebreaks
+          score[[j]][2] <-  sub("\\(.*", "", score[[j]][2])
+          score[[j]][2][is.na(score[[j]][2])] <- 0
+          
+          games <- unlist(score[j][1])
+          
+          if(games[2] > games[1])
+            totalLostSet <- totalLostSet + 1
+        }
+
+      #sub score with lost games
+     wins$score[i] <- as.numeric(totalLostSet)
+    }
+  
+  print(wins)
+  
+  wins$score <- as.numeric(wins$score)
+  
+  #calculate sum by edition
+  setLost <- aggregate(wins$score, by =list(tourney_id = wins$tourney_id, winner_name = wins$winner_name), FUN = sum, na.rm = TRUE)
+  
+  require(data.table) # v1.9.0+
+  setDT(setLost) # converts data which is a data.frame to data.table *by reference*
+  
+  names(setLost)[3] <- "Number"
+  
+  setLost <- setLost[Number == 0]
+  
+  res <- setLost[,.N, by=winner_name]
+  
+  ## order by decreasing
+  setorder(res, -N, na.last=FALSE)
+  
+  print(res)
 }

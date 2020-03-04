@@ -3,13 +3,13 @@ SameTournamentNation <- function(stage) {
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
-  nat <- 'ITA'
+  nat <- 'SVK'
   
   db <- db[db$winner_ioc == nat | db$loser_ioc == nat]
   
   #db <- db[tourney_level == 'G']
   
-  db <- db[tourney_name == 'Australian Open']
+  #db <- db[tourney_name == 'Australian Open']
   
   #tournaments won
   dbm <- db[winner_ioc == nat]
@@ -45,7 +45,7 @@ SameTournamentNation <- function(stage) {
   same <- join(officialName, same, by="tourney_id")
   
   ## order by decreasing age
-  same <- same[order(tourney_id)]
+  same <- same[order(-N)]
   
   
   print(same)

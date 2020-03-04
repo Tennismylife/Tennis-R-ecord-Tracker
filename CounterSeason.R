@@ -2,9 +2,10 @@ library(NLP)
 
 
 CountRoundSeason <- function() {
+  db <- removeTeamEvents(db)
   
   ## drop walkover matches (not countable)
-  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  #db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   ##SelectRound
   #db <- db[tourney_level == 'G']
@@ -13,7 +14,7 @@ CountRoundSeason <- function() {
   
   #db <- db[winner_ioc =='ITA']
   
-  db <- db[winner_age < 21.543]
+  #db <- db[winner_age < 21.547]
   
   wins <- db[,c('winner_name','tourney_id')]
   
@@ -28,7 +29,7 @@ CountRoundSeason <- function() {
   names(season)[2] <- "year"
   
   #select where N > 4
- # season <- season[which(N >  2)]
+  #season <- season[which(N >  1)]
   
   ## order by decreasing
   season <- season[order(-N)]

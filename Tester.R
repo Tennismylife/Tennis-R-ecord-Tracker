@@ -501,8 +501,6 @@ print(string)
 write.csv(id_collection, file = "C:/Users/Andrea/git/repository/ATPStats/id_collection.csv", na="", quote=F, row.names = FALSE)
 write.csv(id_duplicate, file = "C:/Users/Andrea/git/repository/ATPStats/id_duplicate.csv", na="", quote=F, row.names = FALSE)
 
-}
-
 db <- ParallelReader()
 
 db <- db[is.na(db$loser_age)]
@@ -510,4 +508,17 @@ db <- db[is.na(db$loser_age)]
 write.csv(db, file = "C:/Users/Andrea/Documents/GitHub/ATP-Tennis-Record/Java/ATPStats/noflag.csv", na="", quote=F, row.names = FALSE)
 
 print(db)
+}
 
+
+wins <- read.csv(file = 'C:/Users/Andrea/Documents/GitHub/ATP-Tennis-Record/Java/ATPStats/PlayerIds.csv')
+losses <-  read.csv(file = 'C:/Users/Andrea/Documents/GitHub/ATP-Tennis-Record/Java/ATPStats/atp_players.csv')
+
+print(wins)
+
+
+tot <- merge(wins, losses, by = "name")
+
+tot <- tot[,c('idplayer', 'name', 'born', 'hand', 'country')]
+
+write.csv(tot, file = "C:/Users/Andrea/Documents/GitHub/ATP-Tennis-Record/Java/ATPStats/completePlayers.csv", na="", quote=F, row.names = FALSE)

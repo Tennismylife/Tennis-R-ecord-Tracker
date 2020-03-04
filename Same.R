@@ -3,8 +3,6 @@ library(stringr)
 SameTournamentRound <- function(stage) {
   db <- removeTeamEvents(db)
   
-  db <- db[tourney_level == 'G']
-  
   ## get round matches
   if(stage !='W' & stage !='0')
     db <- db[round == stage]
@@ -14,12 +12,13 @@ SameTournamentRound <- function(stage) {
   
   wins <- db[,c('winner_name','tourney_id', 'tourney_name')]
   
-  if(stage !='W')
+  if(stage !='W'){
   losses <- db[,c('loser_name','tourney_id', 'tourney_name')]
+  losses$tourney_id <- sub("^[^-]*", "", losses$tourney_id)
+  }
   
   #extract id from tourney_id
   wins$tourney_id <- sub("^[^-]*", "", wins$tourney_id)
-  losses$tourney_id <- sub("^[^-]*", "", losses$tourney_id)
   
   names(wins)[1] <- "name"
   
@@ -41,6 +40,7 @@ SameTournamentRound <- function(stage) {
   names(list)[1] <- "Player"
   names(list)[2] <- "tourney_id"
   
+  
   officialName <- unique(db[,c('tourney_id', 'tourney_name')])
   officialName$tourney_id <- sub("^[^-]*", "", officialName$tourney_id)
 
@@ -55,7 +55,7 @@ SameTournamentRound <- function(stage) {
   same <- same[order(-same$N),] 
 
   #select first 20
-  same <- same[1:20,]
+  same <- same[1:100,]
   
   print(same)
   
@@ -160,12 +160,13 @@ SameSurfaceRound <- function(stage) {
   
   wins <- dbm[,c('winner_name','tourney_id', 'tourney_name', 'surface')]
   
-  if(stage !='W')
+  if(stage !='W'){
     losses <- dbm[,c('loser_name','tourney_id', 'tourney_name', 'surface')]
-  
+    losses$tourney_id <- sub("^[^-]*", "", losses$tourney_id)
+  }
   #extract id from tourney_id
   wins$tourney_id <- sub("^[^-]*", "", wins$tourney_id)
-  losses$tourney_id <- sub("^[^-]*", "", losses$tourney_id)
+
   
   names(wins)[1] <- "name"
   
@@ -411,6 +412,10 @@ removeTeamEvents <- function(db) {
   ind_ATP_Cup <- grep("^ATP Cup", db$tourney_name)
   if (length(ind_ATP_Cup)>0)
     db <- db[-ind_ATP_Cup, ]
+  
+  ind_Fed_Cup <- grep("^Fed Cup", db$tourney_name)
+  if (length(ind_Fed_Cup)>0)
+    db <- db[-ind_Fed_Cup, ]  
   
    return(db)
 }

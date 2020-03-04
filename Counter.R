@@ -8,8 +8,8 @@ CountOverallRound <- function(stage) {
     dbm <- dbm[round == stage]
   
   if(stage == 'W')
-    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)']
-    
+    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)' & !str_detect(dbm$score, "(WEA)")]
+
   ## wins
   wins <- dbm[,.N, by=winner_name]
   names(wins)[1] <- "name"
@@ -67,7 +67,7 @@ CountSurfaceRound <- function(court, stage) {
     dbm <- dbm[round == stage]
   
   if(stage == 'W')
-    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)']
+    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)' & !str_detect(dbm$score, "(WEA)")]
   
   ## wins
   wins <- dbm[,.N, by=winner_name]
@@ -124,7 +124,7 @@ CountCategoryRound <- function(category, stage) {
     db <- db[round == stage]
   
   if(stage == 'W')
-    db <- db[round == 'F' & score!='ABN' & score!='(ABN)']
+    db <- db[round == 'F' & score!='ABN' & score!='(ABN)' & !str_detect(db$score, "(WEA)")]
   
   ## wins
   wins <- db[,.N, by=winner_name]
@@ -180,7 +180,7 @@ CountTourRound <- function(tournament, stage) {
     dbm <- dbm[round == stage]
   
   if(stage == 'W')
-    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)']
+    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)' & !str_detect(dbm$score, "(WEA)")]
   
   ## wins
   wins <- dbm[,.N, by=winner_name]

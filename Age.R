@@ -7,6 +7,7 @@ EntrieOverallByAge <- function(order, stage) {
   
   dbm <- db
   
+  
   if(stage != 'W' & stage!='0')
     dbm <- dbm[round == stage]
   
@@ -56,7 +57,8 @@ EntrieOverallByAge <- function(order, stage) {
   if(order == "youngest"){
     ## order by decreasing age
     res <- res[order(age)] 
-  } 
+  }
+
   res <- res[1:20,]
   
   print(res)

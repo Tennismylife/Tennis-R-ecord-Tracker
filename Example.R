@@ -128,22 +128,29 @@ TimeToWinSlam <- function() {
 virginH2H <- function() {
   db <- db[!db$score == "W/O" & !db$score == "DEF" &
              !db$score == "(ABN)"]
+  
   h2h <-  db[, c('winner_name', 'loser_name')]
   
   h2h$match <- paste(h2h$winner_name, "-", h2h$loser_name)
   h2h$reverse <- paste(h2h$loser_name, "-", h2h$winner_name)
   
-  
-  #h2h <- h2h[!(h2h$reverse %in% h2h$match),]
-  
+  h2h <- h2h[!(h2h$reverse %in% h2h$match),]
   
   out <- h2h[, .N, by = match]
   
-  out <- arrange(out, desc(out$N))
+  library(splitstackshape)
+  splitted <- cSplit(out, "match", "-")
   
-  out <- out[1:30, ]
+  splitted <- splitted[,c('match_1', 'match_2', 'N')]
   
-  print(out)
+  names(splitted)[1] <- 'Winner' 
+  names(splitted)[2] <- "Loser"
+  
+  splitted <- arrange(splitted, desc(out$N))
+  
+  splitted <- splitted[1:30, ]
+  
+  print(splitted)
 }
 
 ##################################################################### Percentage As Number 1 ###########################################################################
@@ -179,8 +186,13 @@ PercentageAsNumber1 <- function() {
   
   ## sum the wins and losses into a new column played
   res <- res[, played := wins + losses]
-  res <- res[, percentage := wins / played]
+  res <- res[, percentage := (wins / played)*100]
   
+  res$percentage <- substr(res$percentage, 0, 5)
+  res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
+  
+  res$percentage <- paste(res$percentage, "%")
+
   ## order by decreasing total matches
   setorder(res,-percentage)
   #res <- res[1:1,]
@@ -397,9 +409,9 @@ RoundAtAge <- function(){
   
   db <- removeTeamEvents(db)
   
-  db <- db[round == 'F']
+  db <- db[round == 'SF']
   
-  db <- db[winner_age < 21.534]
+  db <- db[winner_age < 21.549]
   
   #db <- db[tourney_level == 'M']
   
@@ -409,4 +421,22 @@ RoundAtAge <- function(){
   
   print(res)
 }
+
+
+################################################################################## ROUNDS COLLECTED AT AGE ########################################################
+
+
+
+BeatSamePlayer <- function(){
+  
+  db <- db[loser_name == 'Novak Djokovic']
+  
+  
+  res <- db[, .N, by = list(db$winner_name)]
+  
+  setorder(res,-N)
+  
+  print(res)
+}
+
 
