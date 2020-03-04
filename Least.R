@@ -129,70 +129,44 @@ LeastGameToWintour <- function() {
 }
 
 
-NoDroppedSetTitle <- function() {
+NoDroppedSetTitle <- function(){
   db <-  removeTeamEvents(db)
   
   #db <- db[tourney_level == 'G']
   
   res <- db[round == 'F']
-  res <- res[, c("tourney_id", "tourney_name", "winner_name")]
+  res <- res[, c("tourney_id", "winner_name")]
   
   wins <- match_df(db, res)
   
-  wins$score <- gsub('W/O', '1-0 1-0 1-0', wins$score)
+  wins$score <- ifelse(grepl("3", wins$best_of), gsub('W/O', '1-0 1-0', wins$score),  wins$score)
+  wins$score <- ifelse(grepl("5", wins$best_of), gsub('W/O', '1-0 1-0 1-0', wins$score),  wins$score)
   
+  wins$score <- str_count(wins$score, " ")
   
-library("foreach")  
- foreach(i = 1:length(wins$score)) %do%
-    {
-      print(wins[i]$tourney_id)
-      
-      #split to catch the sets
-      set <- strsplit(wins$score[i], " ")
+  search <- wins[(wins$score == 2 & wins$best_of == 3) | (wins$score == 3 & wins$best_of == 5) | (wins$score == 4 & wins$best_of == 5)]
+  
+  search <- search[, c("tourney_id", "tourney_name", "winner_name", "score", "best_of")]
+  
+  print(search)
 
-      foreach(k = 1:length(set)) %dopar%
-        {
-          score <- strsplit(set[[k]], "-")
-        }
-      
-      totalLostSet <- 0
-      
-
-      registerDoParallel(cl, cores=cores)
-      foreach(j = 1:length(score)) %dopar%
-        {
-          #sub for tiebreaks
-          score[[j]][2] <-  sub("\\(.*", "", score[[j]][2])
-          score[[j]][2][is.na(score[[j]][2])] <- 0
-          
-          games <- unlist(score[j][1])
-          
-          if(games[2] > games[1])
-            totalLostSet <- totalLostSet + 1
-        }
-
-      #sub score with lost games
-     wins$score[i] <- as.numeric(totalLostSet)
-    }
   
-  print(wins)
-  
-  wins$score <- as.numeric(wins$score)
-  
-  #calculate sum by edition
-  setLost <- aggregate(wins$score, by =list(tourney_id = wins$tourney_id, winner_name = wins$winner_name), FUN = sum, na.rm = TRUE)
+  #search the tourney with stremgth set played
+  library(dplyr)    
+  wins <- anti_join(wins, search, by = c("tourney_id", "winner_name"))
   
   require(data.table) # v1.9.0+
-  setDT(setLost) # converts data which is a data.frame to data.table *by reference*
+  setDT(wins) # converts data which is a data.frame to data.table *by reference
   
-  names(setLost)[3] <- "Number"
+  wins <-unique(wins[, c("tourney_id", "tourney_name", "winner_name")])
   
-  setLost <- setLost[Number == 0]
+  #wins <- wins[wins$winner_name == 'Rafael Nadal']
   
-  res <- setLost[,.N, by=winner_name]
+  res <- wins[, .N, by = winner_name]
   
   ## order by decreasing
-  setorder(res, -N, na.last=FALSE)
+  setorder(res,-N, na.last = FALSE)
   
   print(res)
 }
+

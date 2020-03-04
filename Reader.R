@@ -9,9 +9,9 @@ library(plyr)
 ParallelReader <- function(){
   years  <- (1968:2020)
   
-  files <- paste0("https://raw.githubusercontent.com/Tennismylife/TML-Database/master/", years, ".csv")
+  files <- paste0("C:/Users/Andrea/Documents/GitHub/TML-Database/", years, ".csv")
   
-  files <- append(files, "https://raw.githubusercontent.com/Tennismylife/TML-Database/master/ongoing_tourneys.csv")
+  files <- append(files, "C:/Users/Andrea/Documents/GitHub/TML-Database/ongoing_tourneys.csv")
   
   print(files)
   
