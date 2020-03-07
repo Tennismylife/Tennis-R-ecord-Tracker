@@ -151,7 +151,7 @@ NoDroppedSetTitle <- function(){
   print(search)
 
   
-  #search the tourney with stremgth set played
+  #search the tourney with strength sets played
   library(dplyr)    
   wins <- anti_join(wins, search, by = c("tourney_id", "winner_name"))
   

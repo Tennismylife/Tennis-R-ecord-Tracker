@@ -440,3 +440,25 @@ BeatSamePlayer <- function(){
 }
 
 
+
+PercentageEntryWinsinCategory <-  function(){
+  
+  entry <- EntriesCategory("G")
+  
+  counter <- CountCategoryRound("G", "F")
+  
+  percentage <- merge(entry, counter, by = "name")
+  
+  res <- percentage[, percentage:=played/entries*100]
+  
+  res$percentage <- substr(res$percentage, 0, 7)
+  res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
+  
+  ## order by decreasing total matches
+  setorder(res, -percentage)
+  
+  res$percentage <- paste(res$percentage, "%")
+  
+  return(res)
+  
+}
