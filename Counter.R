@@ -166,7 +166,7 @@ CountCategoryRound <- function(category, stage) {
   else
     res <- res[,c('name', 'wins')]
   
-  res <- res[1:20,]
+  #res <- res[1:20,]
   print(res)
 }
 
