@@ -7,7 +7,6 @@ EntrieOverallByAge <- function(order, stage) {
   
   dbm <- db
   
-  
   if(stage != 'W' & stage!='0')
     dbm <- dbm[round == stage]
   
