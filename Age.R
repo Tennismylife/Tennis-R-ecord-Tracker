@@ -57,7 +57,10 @@ EntrieOverallByAge <- function(order, stage) {
     ## order by decreasing age
     res <- res[order(age)] 
   }
-
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  
   res <- res[1:20,]
   
   print(res)

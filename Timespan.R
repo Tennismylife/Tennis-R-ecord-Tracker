@@ -71,6 +71,9 @@ TimespanTournamentEntry <- function(tournament1, tournament2, tournament3, stage
   names(timespan)[4] <- "last date"
   names(timespan)[5] <- "days"
   
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  
   timespan <- timespan[1:20,]
   print(timespan)
 }
@@ -115,6 +118,10 @@ TimespanTournamentWins <- function(tournament1, tournament2, tournament3) {
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
+  
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
   
   print(timespan)
 }
@@ -167,6 +174,11 @@ TimespanOverallWins <- function() {
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  
+  
   timespan <- timespan[1:100,]
   print(timespan)
 }
@@ -220,6 +232,11 @@ TimespanCategoryWins <- function(category) {
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  
+  
   timespan <- timespan[1:100,]
   print(timespan)
 }
@@ -274,6 +291,11 @@ TimespaSurfaceWins <- function(court) {
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  
+  
   timespan <- timespan[1:100,]
   print(timespan)
 }
@@ -353,6 +375,9 @@ TimespanOverallEntry <- function(stage) {
   names(timespan)[4] <- "last tournament"
   names(timespan)[5] <- "last date"
   names(timespan)[6] <- "days"
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
   
   timespan <- timespan[1:20,]
   print(timespan)
@@ -434,6 +459,9 @@ TimespanCategoryEntry <- function(category, stage) {
   names(timespan)[4] <- "last tournament"
   names(timespan)[5] <- "last date"
   names(timespan)[6] <- "days"
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
   
   timespan <- timespan[1:20,]
   print(timespan)
@@ -517,6 +545,9 @@ TimespaSurfaceEntry <- function(court, stage) {
   names(timespan)[4] <- "last tournament"
   names(timespan)[5] <- "last date"
   names(timespan)[6] <- "days"
+  
+  timespan$first_date <- format(as.Date(timespan$first_date, format="%d/%m/%Y"),"%Y-%m-%d")
+  timespan$last_date <- format(as.Date(timespan$last_date, format="%d/%m/%Y"),"%Y-%m-%d")
   
   timespan <- timespan[1:20,]
   print(timespan)
