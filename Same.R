@@ -61,7 +61,7 @@ SameTournamentRound <- function(stage) {
   
 }
 
-SameTournamentEntries <- function(stage) {
+SameTournamentEntries <- function() {
   db <- removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
