@@ -3,11 +3,6 @@ PercentageOverall <- function() {
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
   
-  #db <- db[round == 'F']
-  
-  #extract tourney from tourney_id
-  db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,3)
-  
   ## wins
   wins <- db[,.N, by=winner_name]
   
@@ -261,12 +256,13 @@ PercentageSameSurface <- function() {
 }
 
 PercentageSameTour <- function() {
+  
   db <- removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   #extract year from tourney_date
-  db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,9)
+  db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,nchar(db$tourney_id))
   
   ## wins
   wins <- db[,.N, by=list(winner_name, tourney_id)]
@@ -302,11 +298,9 @@ PercentageSameTour <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  res <- res[played > 20]
+  #res <- res[played > 19]
   
   res <- res[, percentage:=wins/played*100]
-  
-  print(res)
   
   setorder(res, -percentage)
   
@@ -317,7 +311,7 @@ PercentageSameTour <- function() {
   
   res <- res[,c("name", "tourney_name", "wins", "losses", "played", "percentage")]
   
-  res <- res[1:100,]
+  #res <- res[1:100,]
   print(res)
   
 }
