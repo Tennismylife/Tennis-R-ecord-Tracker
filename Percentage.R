@@ -79,6 +79,8 @@ PercentageSurface <- function(court) {
   ## order by decreasing total matches
   setorder(res, -percentage)
   
+  res$percentage <- paste(res$percentage, "%")
+  
   res <- res[1:100,]
   
   print(res)
@@ -122,6 +124,8 @@ PercentageCategory <- function(category) {
   ## order by decreasing total matches
   setorder(res, -percentage)
   
+  res$percentage <- paste(res$percentage, "%")
+  
   res <- res[1:100,]
   print(res)
 }
@@ -161,6 +165,9 @@ PercentageTour <- function(tour) {
   
   ## order by decreasing total matches
   setorder(res, -percentage)
+  
+  res$percentage <- paste(res$percentage, "%")
+  
   res <- res[1:20,]
   print(res)
 }
@@ -198,7 +205,7 @@ PercentageSameSeason <- function() {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  res <- res[played > 10]
+  res <- res[played > 50]
   
   res <- res[, percentage:=wins/played*100]
   
@@ -207,6 +214,11 @@ PercentageSameSeason <- function() {
   
   ## order by decreasing total matches
   setorder(res, -percentage)
+  
+  res$percentage <- paste(res$percentage, "%")
+  
+  names(res)[2] <- "year"
+  
   res <- res[1:100,]
   print(res)
   
@@ -223,8 +235,6 @@ PercentageSameSurface <- function() {
   
   ## losses
   losses <- dbm[,.N, by=list(loser_name, surface)]
-  
-  print(wins)
   
   ## common name to merge with
   names(wins)[1] <- names(losses)[1] <- "name"
@@ -250,7 +260,11 @@ PercentageSameSurface <- function() {
   
   ## order by decreasing total matches
   setorder(res, -percentage)
+  
+  res$percentage <- paste(res$percentage, "%")
+  
   res <- res[1:100,]
+  
   print(res)
   
 }

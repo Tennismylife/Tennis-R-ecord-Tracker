@@ -235,7 +235,7 @@ write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamen
 stat <- SameTournamentWins()
 write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentWins.html"))
 
-stat <- SameTournamentEntries('0')
+stat <- SameTournamentEntries()
 write_tableHTML(tableHTML(stat), file = paste("Data/SameTournament/SameTournamentEntries.html"))
 
 stat <-SameSurfaceEntries()

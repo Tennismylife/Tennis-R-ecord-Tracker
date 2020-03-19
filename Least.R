@@ -68,7 +68,7 @@ LeastGameToWintour <- function() {
   res <- db[round =='F']
   res <- res[,c("tourney_id", "tourney_name", "winner_name")]
   
-  #db <- db[tourney_level == 'G']
+  db <- db[tourney_level == 'G']
   wins <- match_df(db, res)
   
   print(wins)
@@ -123,6 +123,12 @@ LeastGameToWintour <- function() {
   lostgame <- lostgame[,c("tourney_name", "tourney_id", "winner_name", "games")]
   
   lostgame <- arrange(lostgame, lostgame$games)
+  
+  ## common name to merge with
+  names(lostgame)[1] <- "Tournament"
+  names(lostgame)[2] <- "Year"
+  names(lostgame)[3] <- "Winner"
+  names(lostgame)[4] <- "games"  
   
   print(lostgame)
   
