@@ -33,6 +33,8 @@ LeastBreakToRound <- function() {
   res <- db[round =='F' & tourney_level=='G' & winner_name == 'Novak Djokovic']
   res <- res[,c("winner_name", "tourney_id", "tourney_name", "tourney_date", "winner_name")]
   
+  
+  #search all matches played to reach a round
   dbm <- db[tourney_level=='G']
   wins <- match_df(dbm, res)
   
@@ -68,10 +70,10 @@ LeastGameToWintour <- function() {
   res <- db[round =='F']
   res <- res[,c("tourney_id", "tourney_name", "winner_name")]
   
+  #search all matches played to win a tournament
   db <- db[tourney_level == 'G']
   wins <- match_df(db, res)
   
-  print(wins)
   
   library(foreach)
   foreach(i = 1:length(wins$score)) %do%  
