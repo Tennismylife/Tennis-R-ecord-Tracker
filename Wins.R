@@ -18,22 +18,30 @@ WinsCategory <- function(category) {
   ## order by decreasing
   setorder(res, -N, na.last=FALSE)
   
-  res <- res[1:20,]
+  #res <- res[1:20,]
   
   print(res)
 }
 
 
-WinsTour <- function(tournament, tournament2, tournament3) {
-  ## only select tournaments in the previously defined pool
-  dbm <- db[tourney_name == tournament | tourney_name == tournament2 | tourney_name == tournament3]
+WinsTour <- function() {
+  
+  #extract year from tourney_date
+  db$tourney_id <- stringr::str_sub(db$tourney_id, 5 ,nchar(db$tourney_id))
+  
+  db <- db[tourney_id == '-404']
+  
   ## drop walkover matches (not countable)
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  
   ## count occurrences of won matches
-  res <- dbm[,.N, by=winner_name]
+  res <- db[,.N, by=winner_name]
+  
   ## order by decreasing
   setorder(res, -N, na.last=FALSE)
+  
   res <- res[1:20,]
+  
   print(res)
 }
 
@@ -63,7 +71,7 @@ WinsOverall <- function() {
   res <- dbm[,.N, by=winner_name]
   ## order by decreasing
   setorder(res, -N, na.last=FALSE)
-  res <- res[1:20,]
+  #res <- res[1:20,]
   print(res)
   
 }

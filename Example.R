@@ -25,7 +25,7 @@ MostWinsNoSlammer <- function() {
   res <- db[round == 'F' & tourney_level == 'M']
   res <- res[, c("winner_name")]
   
-  wins <- WinsCategory('G')
+  wins <- WinsCategory('M')
   wins <- subset(wins,!(wins$winner_name %in% res$winner_name))
   
   print(wins)
@@ -205,6 +205,8 @@ PercentageAsNumber1 <- function() {
 WinsAgainstNumber1 <- function() {
   dbm <- db
   
+  dbm <- dbm[loser_name == 'Roger Federer' & surface == 'Grass']
+  
   dbm <-
     dbm[!dbm$score == "W/O" &
           !dbm$score == "DEF" & !dbm$score == "(ABN)" & !dbm$score == "ABN"]
@@ -216,7 +218,9 @@ WinsAgainstNumber1 <- function() {
   
   ## order by decreasing total matches
   setorder(losses,-N)
+  
   losses <- losses[1:20, ]
+  
   print(losses)
   
 }
@@ -431,7 +435,6 @@ BeatSamePlayer <- function(){
   
   db <- db[loser_name == 'Novak Djokovic']
   
-  
   res <- db[, .N, by = list(db$winner_name)]
   
   setorder(res,-N)
@@ -462,3 +465,150 @@ PercentageEntryWinsinCategory <-  function(){
   return(res)
   
 }
+
+
+
+PercentageDrop1stSet <- function(){
+  
+  winnerlist <- db[,c("winner_name")]
+  loserlist <- db[,c("loser_name")]
+  
+  names(winnerlist)[1] <- 'player'
+  names(loserlist)[1] <- 'player'
+  
+  playerslist <- unique(union(winnerlist, loserlist, by = 'player'))
+  
+  #print(playerslist)
+  
+  wins <- db
+  
+  wins <- db[(winner_name == 'Roger Federer' | loser_name == 'Roger Federer') & round == 'F' & tourney_level == 'G']
+  
+
+  library(foreach)
+  foreach(i = 1:length(wins$score)) %do%  
+    {
+      print(wins[i])
+      #change walkover with 0 games
+      wins$score[i] <- gsub('W/O', '0-0 0-0', wins$score[i])
+      
+      #count played sets
+      #library(dplyr)
+      #setnumber  <- str_count(wins$score[i], " ")
+      
+      #print(setnumber)
+      
+      #split to catch the sets
+      set <- strsplit(wins$score[i], " ")
+      
+      
+      foreach(k = 1:length(set)) %do%
+        {
+          score <- strsplit(set[[k]], "-")
+        }
+      
+        #sub for tiebreaks
+        score[[1]][2] <-  sub("\\(.*", "", score[[1]][2])
+          
+        score[[1]][2][is.na(score[[1]][2])] <- 0
+          
+        if(score[[1]][2] > score[[1]][1])
+          wins$score[i]<- '1st drop'
+        else 
+          wins$score[i]<- 'no 1st drop'
+
+      
+    }
+  
+  print(wins)
+}
+
+
+PercentageSameSeasonbyPlayer <- function() {
+  
+  dbm <- db
+  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !dbm$score=="(ABN)"]
+  
+  dbm <- dbm[surface == 'Clay']
+  
+  #extract year from tourney_date
+  dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 0 ,4)
+  
+  ## wins
+  dbm1 <- dbm[winner_name == 'Dominic Thiem']
+  wins <- dbm1[,.N, by=list(winner_name, tourney_id)]
+
+  ## losses
+  dbm1 <- dbm[loser_name == 'Dominic Thiem']
+  losses <- dbm1[,.N, by=list(loser_name, tourney_id)]
+  
+  dbm2 <- dbm[round == 'F']
+  trophy <- dbm2[,.N, by=list(winner_name, tourney_id)]
+  
+  ## common name to merge with
+  names(wins)[1] <- names(losses)[1] <- names(trophy)[1] <- "name"
+  names(wins)[3] <- "wins"
+  names(losses)[3] <- "losses"
+  
+  ## merge the tables by "name"
+  res <- merge(wins, losses, by = c("name", "tourney_id"), all.x=TRUE)
+  
+  ## merge the tables by "name"
+  res <- merge(res, trophy, by = c("name", "tourney_id"), all.x=TRUE)
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  ## sum the wins and losses into a new column played
+  res <- res[, played:=wins+losses]
+  
+  totalLosses <- 0
+  totalwins <- 0
+  totalTitles <- 0
+  
+  library(foreach)
+  foreach(i = 1:length(res$played)) %do%  
+    {
+      totalLosses <- totalLosses + res$losses[i]
+      res$totLosses[i] <-  totalLosses
+      
+      totalwins <- totalwins + res$wins[i]
+      res$totalwins[i] <-  totalwins 
+      
+      res$percTot[i] <- totalwins/ (totalwins +totalLosses) * 100
+      
+      totalTitles <- totalTitles + res$N[i]
+      res$totTitle[i] <- totalTitles
+      
+    }
+  
+  ## calculate winning percentage
+  #res <- res[played > 50]
+  
+  res <- res[, percyear:=wins/played*100]
+  
+  res$percyear <- substr(res$percyear, 0, 5)
+  res$percyear <- suppressWarnings(as.numeric(str_replace_all(res$percyear,pattern=',',replacement='.')))
+  
+  res$percyear <- paste(res$percyear, "%")
+  
+  
+  res$percTot <- substr(res$percTot, 0, 5)
+  res$percTot <- suppressWarnings(as.numeric(str_replace_all(res$percTot,pattern=',',replacement='.')))
+  
+  res$percTot <- paste(res$percTot, "%")
+  
+  
+  names(res)[2] <- "year"
+  
+  ## order by decreasing total matches
+  setorder(res, year)
+  
+  res <- res[,c("name", "year", "wins", "losses", "percyear", "N", "totalwins", "totLosses", "percTot", "totTitle")]
+  
+  
+  #res <- res[1:100,]
+  print(res)
+  
+}
+
