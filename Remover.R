@@ -26,7 +26,11 @@ removeTeamEvents <- function(db) {
   
   ind_Fed_Cup <- grep("^Fed Cup", db$tourney_name)
   if (length(ind_Fed_Cup)>0)
-    db <- db[-ind_Fed_Cup, ]  
+    db <- db[-ind_Fed_Cup, ]
+  
+  ind_Next_Gen_Finals <- grep("^Next Gen Finals", db$tourney_name)
+  if (length(ind_Next_Gen_Finals)>0)
+    db <- db[-ind_Next_Gen_Finals, ] 
   
   return(db)
 }
