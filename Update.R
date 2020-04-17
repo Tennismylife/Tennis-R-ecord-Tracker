@@ -53,9 +53,9 @@ stat <- WinsCategory(category)
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsCategory", append=FALSE)
 write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsCategory.html')
 
-stat <- WinsTour("Australian Open","Australian Open", "Australian Open")
+#stat <- WinsTour("Australian Open","Australian Open", "Australian Open")
 #write.xlsx(stat, file = "WinsTracker.xlsx", sheetName="WinsTour", append=TRUE)
-write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsTour.html')
+#write_tableHTML(tableHTML(stat), file = 'Data/Wins/WinsTour.html')
 
 for (i in 1:length(surface)) {
   stat <- winsSurface(surface[i])
