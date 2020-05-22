@@ -66,9 +66,11 @@ SameSeasonWins <- function() {
 
   print(sameseason) 
   
+  sameseason <- sameseason[Season  < 1989]
+  
   entry <- sameseason[order(-N)] 
   
-  entry <- entry[1:100,]
+  entry <- entry[1:300,]
   
   print(entry)
   
@@ -118,7 +120,7 @@ SameSeasonRound <- function(stage) {
   names(same)[3] <- "N"
   
   season <- same[order(-N)] 
-  season <- season[1:20,]
+  season <- season[1:400,]
   
   print(season)
 }

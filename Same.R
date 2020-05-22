@@ -96,7 +96,7 @@ SameTournamentEntries <- function() {
   names(same)[3] <- "N"
   
   #select first 20
-  same <- same[1:100,]
+  #same <- same[1:100,]
   
   print(same)
   

@@ -27,7 +27,7 @@ EntriesOverall <- function() {
   
   setorder(entry, -N, na.last=FALSE)
   
-  entry <- entry[1:20,]
+  entry <- entry[1:100,]
   
   print(entry)
 }
@@ -97,7 +97,9 @@ EntriesCategory <- function(category) {
   
   ## order by decreasing total matches
   setorder(res, -entries)
-  res <- res[1:20,]
+ 
+   #res <- res[1:20,]
+   
   print(res)
 }
 

@@ -129,28 +129,46 @@ virginH2H <- function() {
   db <- db[!db$score == "W/O" & !db$score == "DEF" &
              !db$score == "(ABN)"]
   
-  h2h <-  db[, c('winner_name', 'loser_name')]
+  #db <- db[(winner_name == 'Roger Federer' & loser_name == 'Novak Djokovic') | winner_name == 'Novak Djokovic' & loser_name == 'Roger Federer']
   
-  h2h$match <- paste(h2h$winner_name, "-", h2h$loser_name)
-  h2h$reverse <- paste(h2h$loser_name, "-", h2h$winner_name)
+  h2h <-  db[, c('winner_name', 'loser_name', 'tourney_id')]
   
-  h2h <- h2h[!(h2h$reverse %in% h2h$match),]
+  # #extract year from tourney_date
+  h2h$tourney_id <- stringr::str_sub(h2h$tourney_id, 0 ,4)
   
-  out <- h2h[, .N, by = match]
+  h2h <- h2h[tourney_id > 1999]
   
-  library(splitstackshape)
-  splitted <- cSplit(out, "match", "-")
+  #h2h <- h2h[winner_name == 'Roger Federer' | loser_name == 'Roger Federer']
   
-  splitted <- splitted[,c('match_1', 'match_2', 'N')]
+  h2h$match <- paste(h2h$winner_name, "-", h2h$loser_name, "-", h2h$tourney_id)
   
-  names(splitted)[1] <- 'Winner' 
-  names(splitted)[2] <- "Loser"
+  h2h$reverse <- paste(h2h$loser_name, "-", h2h$winner_name, "-", h2h$tourney_id)
   
-  splitted <- arrange(splitted, desc(out$N))
   
-  splitted <- splitted[1:30, ]
+  match <- h2h[,c("match")]
+  reverse <- h2h[,c("reverse")]
   
-  print(splitted)
+  total <- mapply(c, match, reverse, SIMPLIFY=FALSE)
+  
+  #total<- total[!is.na(total)]
+  
+  print(typeof(total))
+  
+  #total <- rbindlist(total)
+  
+  print(typeof(total))
+  
+  total <- setDT(total)
+  
+  total <- total[,.N, by=match]
+
+  ## order by decreasing
+  setorder(total, -N, na.last=FALSE)
+  
+  #total <- ddply(total, .(total), nrow)
+  
+  
+  print(total)
 }
 
 ##################################################################### Percentage As Number 1 ###########################################################################
@@ -327,13 +345,6 @@ Most5Setter <- function() {
   ## drop walkover matches (not countable)
   db <- db[!db$score == "W/O" &
              !db$score == "DEF" & !db$score == "(ABN)"]
-  
-  ##SelectRound
-  db <- db[tourney_level == 'G']
-  
-  #db <- db[round == 'R16']
-  
-  #dbm <- dbm[winner_ioc =='ITA']
   
   wins <- db[, c('winner_name', 'tourney_id', 'score')]
   
@@ -612,3 +623,71 @@ PercentageSameSeasonbyPlayer <- function() {
   
 }
 
+
+
+MostEntriesNoTitle <- function(){
+stat <- SameTournamentEntries()
+
+stat <- stat[ Player == 'Roger Federer' | Player == 'Rafael Nadal' | Player == 'Novak Djokovic']
+
+res <- db[round =='F']
+res <- res[,c("tourney_name", "winner_name")]
+
+names(res)[1] <- "Tournament"
+names(res)[2] <- "Player"
+
+print(res)
+
+res <- res[,c("Tournament", "Player")]
+
+
+
+stat <- anti_join(stat, res)
+}
+
+
+LIstTop10 <- function(){
+wins <- db[winner_rank < 11]
+losses <-  db[loser_rank < 11]
+
+wins <- wins[,c('winner_name')]
+losses <- losses[,c('loser_name')]
+
+names(wins)[1] <- "name"
+names(losses)[1] <- "name"
+
+res <- merge(wins, losses, by = c("name"), allow.cartesian=TRUE)
+
+stat<- unique(res[,c('name')])
+}
+
+
+Top10ToWinMasters <- function(){
+  
+  category <- 'G'
+  
+  stat <- db[tourney_level == category & loser_rank < 11]
+  
+  res <- db[round =='F' & tourney_level== category]
+  res <- res[,c("tourney_id", "tourney_name", "tourney_date", "winner_name")]
+  
+  dbm <- db[tourney_level== category & loser_rank < 11]
+  wins <- match_df(dbm, res)
+  
+  stat <- count(wins, "tourney_id")
+  
+  res <- db[round =='F' & tourney_level == category]
+  officialName <- unique(res[,c('tourney_id', 'tourney_name', 'winner_name')])
+  
+  stat <- join(officialName, stat, by="tourney_id")
+  
+  #extract year from tourney_id
+  stat$tourney_id <- stringr::str_sub(stat$tourney_id, 0 ,4)
+  
+  #stat <- stat[,c("tourney_id", "tourney_name")]
+  
+  ## order by decreasing
+  setorder(stat, -freq, na.last=FALSE)
+  
+
+}

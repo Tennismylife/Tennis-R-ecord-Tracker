@@ -114,7 +114,7 @@ PercentageCategory <- function(category) {
   res <- res[, played:=wins+losses]
   
   ## calculate winning percentage
-  res <- res[played > 20]
+  #res <- res[played > 20]
   
   res <- res[, percentage:=wins/played*100]
   

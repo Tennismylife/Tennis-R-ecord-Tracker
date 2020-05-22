@@ -1,8 +1,11 @@
 CountOverallRound <- function(stage) {
-  
+
+    
   db <- removeTeamEvents(db)
+
+  db <- db[winner_age > 30]
   
-  dbm <- db
+  dbm <- db  
   
   if(stage != 'W')
     dbm <- dbm[round == stage]
@@ -50,7 +53,7 @@ CountOverallRound <- function(stage) {
    else
   res <- res[,c('name', 'wins')]
   
-  res <- res[1:20,]
+  res <- res[1:100,]
   
   print(res)
 }

@@ -8,7 +8,7 @@ CountRoundSeason <- function() {
   #db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   ##SelectRound
-  #db <- db[tourney_level == 'G']
+  db <- db[tourney_level == 'G']
   
   db <- db[round == 'F']
   
