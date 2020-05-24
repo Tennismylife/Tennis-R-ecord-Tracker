@@ -12,9 +12,8 @@ EntrieOverallByAge <- function(order, stage) {
   
   if(stage == 'W' & stage!='0')
     dbm <- dbm[round == 'F']
-  
-  dbm1 <- dbm[round == 'F']
-  dbm1 <- unique(dbm1[,c('tourney_name', 'tourney_id', 'winner_ioc', 'winner_name', 'winner_age')])
+
+  dbm1 <- unique(dbm[,c('tourney_name', 'tourney_id', 'winner_ioc', 'winner_name', 'winner_age')])
   
   if(stage != 'W')
   dbm2 <- unique(dbm[,c('tourney_name', 'tourney_id', 'loser_ioc', 'loser_name', 'loser_age')])
@@ -42,7 +41,7 @@ EntrieOverallByAge <- function(order, stage) {
   res <- rbind( wins, losses, fill=TRUE)
   else 
   res <- wins
-  
+
   res$tourney_id <- substr(res$tourney_id, 0, 4)
   
   res$age <- substr(res$age, 0, 5)
