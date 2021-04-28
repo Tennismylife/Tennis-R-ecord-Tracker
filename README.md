@@ -322,3 +322,8 @@ Calculate the break points for all matches
 Here the map to find a specific record in its subest
 
 <a href="https://ibb.co/s6ZVRd3"><img src="https://i.ibb.co/k9tSBsc/Immagine.png" alt="Immagine" border="0"></a>
+
+
+# License
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" property="dct:title" rel="dct:type">This app and all its algorithms</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://www.tennismylife.org/" property="cc:attributionName" rel="cc:attributionURL">TennisMyLife</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>. Attribution is required. Non-commercial use only.
