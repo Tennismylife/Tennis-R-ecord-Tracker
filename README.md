@@ -96,6 +96,10 @@ Scripts to find the most unbalanced wins and / or losses in a tennis player's ca
 
 All scripts for the decisive game
 
+# Ranking
+
+Scripts based on parameters 'winner_rank' or 'loser_rank'
+
 # Example
 
 Collection of miscellaneous functions to find records, not categorized
