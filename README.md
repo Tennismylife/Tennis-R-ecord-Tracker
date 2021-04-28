@@ -176,4 +176,147 @@ Tournaments won where the winner has never lost a set
 
 Collection of miscellaneous functions to find records, not categorized
 
+## MostWinsNoSlammer
+
+Standings of players who have won the most matches in a Slam without ever winning a title
+
+## PercentageInSlamsVsTop10
+
+Win rate against Top 10s in Slams
+
+## TimeToWinSlam
+
+Standings of players who have spent the least time on the catch a  Slam
+
+## PercentageAsNumber1
+
+Win rate for the current ATP No. 1
+
+## WinsAgainstNumber1
+
+Standings of players who have beaten the number 1 several times
+
+## Most5SetterPlayed
+
+Standings of players who have played the most games in the 5th set
+
+## NoBig3inQFs
+
+Tournaments where there aren't Federer, Nadal & Djokovic in quarterfinals
+
+## RoundAtAge
+
+Rounds collected in a specific age (i.e. 24.56 years old)
+
+## PercentageEntryWinsinCategorySurfaceOverall
+
+Ratio of participations in tournaments on the same surface (or overall)
+
+## PercentageSameSeasonbyPlayer
+
+Year-to-year win rate for a given player
+
+## MostEntriesNoTitle
+
+Most appearances without ever winning a title
+
+## Top10ToWinMasters
+
+Number of Top 10 batted to catch an ATP Masters 1000 tournament
+
+## LessWinsCategorybyWinner
+
+Ranking of who has won the fewest matches among the winners of a title
+
+## AgeOfNTitle
+
+Find the age at which a certain achievement has been reached
+
+## NWinsatAge
+
+Number of wins collected at a certain age
+
+## QualifiersinRound
+
+Number of qualifiers in a given round
+
+## RetirementsInASlam
+
+Standings of the Slams in which there have been more retirements
+
+## AgeWhoWillMakeARound
+
+Age of a player who will then reach a certain turn
+
+## AllTournamentsRoll
+
+Collect all wins-losses for a specific player in all tournaments where he joined
+
+## ConsecutiveWon1stSetWins
+
+Ranking of those who have won the most matches in a row by winning the 1st set
+
+## won1stWins
+
+Ranking of those who have won the most matches by winning the 1st set
+
+## Beat123intheSametournament
+
+Tournaments where a player has defeated ATP No. 1, 2 and 3
+
+## OldestPlayerstoWin1stTitle
+
+Ranking of the oldest players to win a tournament
+
+## YoungestToWinAMatchinSlams
+
+Ranking of the youngest players to win a match in a Slam
+
+## consecutiveSetsWon
+
+All streaks for a given player where he won a set
+
+## SameNation4Semifinalists
+
+Tournaments where all 4 semifinalists are from the same country
+
+## Top10inATournament
+
+Ranking of tournaments where there are more ATP Top 10s
+
+## RoundinCategoryWithNoFormerChampions
+
+Round in a subset of tournaments where there aren't former champions (in this category)
+
+## TournamentsPlayedToReachARound
+
+Tournaments played to reach a specific round
+
+## Totalbreaks
+
+Calculate the breaks on service for all matches
+
+## WinningPercentageClayOnTotal
+
+Win rates on a surface for those who have collected a certain number of ATP wins
+
+## TournamentWonByABig3WillAllInDraw
+
+Tournament won by Federer or Nadal or Djokovic where all Big 3 were in the main draw
+
+## TournamentsPlayedToReachNARound
+
+Tournaments played by a player to reach N rounds
+
+## AllATPWinsBySurface
+
+Collect all wins by 4 surfaces for all players
+
+## Totalbreakpoints
+
+Calculate the break points for all matches
+
+
+# Here the map to find a specific record in its subest
+
 <a href="https://ibb.co/s6ZVRd3"><img src="https://i.ibb.co/k9tSBsc/Immagine.png" alt="Immagine" border="0"></a>
