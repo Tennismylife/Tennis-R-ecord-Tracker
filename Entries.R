@@ -1,7 +1,7 @@
 EntriesOverall <- function() {
   
   db <- removeTeamEvents(db)
-  
+
   #tournaments won
   wins <- unique(db[,c('winner_name','tourney_name','tourney_date')])
   wins <- dplyr::distinct(wins)
@@ -23,20 +23,20 @@ EntriesOverall <- function() {
   res[is.na(res)] <- 0
   
   ## sum the wins and losses into a new column played
-  entry <- res[,.N, by = .(name)]
+  entries <- res[,.N, by = .(name)]
   
-  setorder(entry, -N, na.last=FALSE)
+  setorder(entries, -N, na.last=FALSE)
   
-  entry <- entry[1:100,]
-  
-  print(entry)
+  print(entries)
 }
 
 EntriesSurface <- function(court) {
+  
   db <- removeTeamEvents(db)
   
   #Select surface
   dbm <- db[surface == court]
+  
   #tournaments won
   wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date')])
   wins <- dplyr::distinct(wins)
@@ -59,8 +59,13 @@ EntriesSurface <- function(court) {
   
   ## sum the wins and losses into a new column played
   entry <- res[,.N, by = .(name)]
+  
+  #entry <- subset(entry, N > 10)
+  
   setorder(entry, -N, na.last=FALSE)
-  res <- res[1:100,]
+  
+  names(entry)[2] <- "entries"
+  
   print(entry)
 }
 
@@ -97,16 +102,16 @@ EntriesCategory <- function(category) {
   
   ## order by decreasing total matches
   setorder(res, -entries)
- 
-   #res <- res[1:20,]
    
   print(res)
 }
 
-EntriesTournament <- function(tournament1, tournament2, tournament3) {
+EntriesTournament <- function(id) {
   
-  ## only select tournaments in the previously defined pool
-  dbm <- db[tourney_name == tournament1 | tourney_name == tournament2 | tourney_name == tournament3]
+  ## only select matches of a tournament
+  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
+  
+  dbm <- db[tourney_id == id]
   
   #tournaments won
   wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date')])
@@ -130,8 +135,9 @@ EntriesTournament <- function(tournament1, tournament2, tournament3) {
   
   ## sum the wins and losses into a new column played
   entry <- res[,.N, by = .(name)]
+  
   setorder(entry, -N, na.last=FALSE)
-  res <- res[1:100,]
+  
   print(entry)
 }
 
@@ -149,11 +155,10 @@ EntrieTournamentByAge <- function(tournament1, tournament2, tournament3) {
   
   ## wins
   wins <- dbm1
-  print(wins)
+  
   ## losses
   losses <- dbm2
-  print(losses)
-  
+
   ## common name to merge with
   names(wins)[3] <- names(losses)[3] <- "flag"
   names(wins)[4] <- names(losses)[4] <- "name"
@@ -165,10 +170,9 @@ EntrieTournamentByAge <- function(tournament1, tournament2, tournament3) {
   res$age <- substr(res$age, 0, 5)
   res$age <- suppressWarnings(as.numeric(str_replace_all(res$age,pattern=',',replacement='.')))
 
- 
   ## order by decreasing age
   setorder(res, -age, na.last=FALSE)
-  res <- res[1:100,]
+
   print(res)
 }
 
@@ -178,7 +182,6 @@ EntrieCategoryByAge <- function(category) {
   ## only select tournaments in the previously defined pool
   dbm <- db[tourney_level == category]
   
-  #dbm <- db[tourney_name %in% masters,]
   dbm1 <- dbm[round == 'F']
   dbm1 <- unique(dbm1[,c('tourney_name', 'tourney_date', 'winner_ioc', 'winner_name', 'winner_age')])
   
@@ -186,10 +189,9 @@ EntrieCategoryByAge <- function(category) {
   
   ## wins
   wins <- dbm1
-  print(wins)
+
   ## losses
   losses <- dbm2
-  print(losses)
   
   ## common name to merge with
   names(wins)[3] <- names(losses)[3] <- "flag"
@@ -205,12 +207,13 @@ EntrieCategoryByAge <- function(category) {
 
   ## order by decreasing age
   res <- res[order(-age)]
-  res <- res[1:100,]
+  
   print(res)
 }
 
 
 EntrieSurfaceByAge <- function(court, order, stage) {
+  
   db <- removeTeamEvents(db)
   
   dbm <- db[surface == court]
@@ -266,8 +269,7 @@ EntrieSurfaceByAge <- function(court, order, stage) {
   if(order == 'youngest'){
     ## order by creasing age
     res <- res[order(age)] 
-  } 
-  res <- res[1:20,]
+  }
   
   print(res)
 }

@@ -1,6 +1,7 @@
 library(stringr)
 
 SameTournamentRound <- function(stage) {
+  
   db <- removeTeamEvents(db)
   
   ## get round matches
@@ -35,11 +36,12 @@ SameTournamentRound <- function(stage) {
   #in the same tournament
   list <- res[, .N, by = list(res$name, res$tourney_id)]
   
-  
   #Retrieve the official tournament name
   names(list)[1] <- "Player"
   names(list)[2] <- "tourney_id"
   
+  #list <- list[Player == player]
+
   
   officialName <- unique(db[,c('tourney_id', 'tourney_name')])
   officialName$tourney_id <- sub("^[^-]*", "", officialName$tourney_id)
@@ -52,16 +54,14 @@ SameTournamentRound <- function(stage) {
   same <- same[,c('Player','tourney_name', 'N')]
   
   ## order by decreasing number
-  same <- same[order(-same$N),] 
-
-  #select first 20
-  same <- same[1:100,]
+  same <- same[order(-same$N),]
   
   print(same)
   
 }
 
 SameTournamentEntries <- function() {
+  
   db <- removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
@@ -95,15 +95,13 @@ SameTournamentEntries <- function() {
   names(same)[2] <- "Tournament"
   names(same)[3] <- "N"
   
-  #select first 20
-  #same <- same[1:100,]
-  
   print(same)
   
 }
 
 
 SameSurfaceEntries <- function() {
+  
   db <- removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
@@ -136,9 +134,6 @@ SameSurfaceEntries <- function() {
   names(same)[1] <- "Player"
   names(same)[2] <- "Tournament"
   names(same)[3] <- "N"
-  
-  #select first 20
-  same <- same[1:20,]
   
   print(same)
   
@@ -189,10 +184,7 @@ SameSurfaceRound <- function(stage) {
   same <- same[,c('Player','Surface', 'N')]
   
   ## order by decreasing number
-  same <- same[order(-same$N),] 
-  
-  #select first 100
-  same <- same[1:100,]
+  same <- same[order(-same$N),]
   
   print(same)
   
@@ -200,8 +192,9 @@ SameSurfaceRound <- function(stage) {
 
 
 SameTournamentPlayed <- function() {
+  
   db <- removeTeamEvents(db)
-
+  
   db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
   
   #tournaments won
@@ -229,9 +222,6 @@ SameTournamentPlayed <- function() {
   names(same)[1] <- "Player"
   names(same)[2] <- "Tournament"
   names(same)[3] <- "N"
-  
-  #select first 20
-  same <- same[1:20,]
   
   print(same)
   
@@ -308,15 +298,13 @@ SameSeasonPlayed <- function() {
   names(same)[2] <- "Season"
   names(same)[3] <- "N"
   
-  #select first 20
-  same <- same[1:20,]
-  
   print(same)
   
 }
 
 
 SameTournamentWins <- function() {
+  
   db <- removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
@@ -324,9 +312,12 @@ SameTournamentWins <- function() {
   #tournaments won
   wins <- db[,c('winner_name','tourney_id','tourney_name')]
   
+  ## only select matches of a tournament
+  wins$tourney_id <- sub("^[^-]*", "", wins$tourney_id)
+  
   ## common name to merge with
   names(wins)[1] <- "name"
-  names(wins)[2] <- "id"
+  names(wins)[2] <- "tourney_id"
   names(wins)[3] <- "tournament"
   
   ## merge the tables by "name"
@@ -335,17 +326,32 @@ SameTournamentWins <- function() {
   ## get rid of NAs, have 0 instead
   res[is.na(res)] <- 0
   
-  same <- res[, .N, by = list(res$name, res$tournament)]
+  same <- res[, .N, by = list(res$name, res$tourney_id)]
   
   ## order by decreasing age
-  same <- same[order(-N)] 
+  same <- same[order(-N)]
+  
+  ## common name to merge with
+  names(same)[1] <- "name"
+  names(same)[2] <- "tourney_id"
+  names(same)[3] <- "N"
+  
+  print(same)
+  
+  finals <- db[round == 'F']
+  ## only select matches of a tournament
+  finals$tourney_id <- sub("^[^-]*", "", finals$tourney_id)
+  
+  officialName <- unique(finals[, c('tourney_id', 'tourney_name')])
+  
+  same <-
+    left_join(same, officialName, by = "tourney_id")
   
   names(same)[1] <- "Player"
   names(same)[2] <- "Tournament"
   names(same)[3] <- "N"
   
-  #select first 20
-  same <- same[1:20,]
+  same <- same[,c("Player", "tourney_name", "N")]
   
   print(same)
   
@@ -353,6 +359,7 @@ SameTournamentWins <- function() {
 
 
 SameSurfaceWins <- function() {
+  
   db <- removeTeamEvents(db)
   
   db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
@@ -379,9 +386,6 @@ SameSurfaceWins <- function() {
   names(same)[1] <- "Player"
   names(same)[2] <- "Surface"
   names(same)[3] <- "N"
-  
-  #select first 20
-  same <- same[1:20,]
   
   print(same)
   

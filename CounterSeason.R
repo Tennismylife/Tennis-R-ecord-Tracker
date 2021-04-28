@@ -2,19 +2,20 @@ library(NLP)
 
 
 CountRoundSeason <- function() {
-  db <- removeTeamEvents(db)
+  
+  #db <- removeTeamEvents(db)
   
   ## drop walkover matches (not countable)
   #db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
   
   ##SelectRound
-  db <- db[tourney_level == 'G']
-  
-  db <- db[round == 'F']
+  #db <- db[tourney_level == 'M']
   
   #db <- db[winner_ioc =='ITA']
   
   #db <- db[winner_age < 21.547]
+  
+  db <- db[round == 'F']
   
   wins <- db[,c('winner_name','tourney_id')]
   
@@ -29,7 +30,7 @@ CountRoundSeason <- function() {
   names(season)[2] <- "year"
   
   #select where N > 4
-  #season <- season[which(N >  1)]
+  season <- season[which(N >  0)]
   
   ## order by decreasing
   season <- season[order(-N)]
@@ -47,10 +48,16 @@ CountRoundSeason <- function() {
   
   mm <- mm[order(mm$n, decreasing=TRUE), ]
   
-  mm$seasons <-  as.character(mm$seasons)
+  #mm$seasons <- str_replace_all(mm$seasons, "c", "")
+  
+  mm$seasons <- gsub("c(", "", mm$seasons, fixed = TRUE)
+  
+  mm$seasons <- gsub("\"", "", mm$seasons, fixed = TRUE)
+  
+  mm$seasons <- gsub(")", "", mm$seasons, fixed = TRUE)
   
   #select 1st 20
-  mm <- mm[1:100,]
+  #mm <- mm[1:100,]
   
   print(mm)
   

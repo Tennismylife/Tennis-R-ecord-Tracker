@@ -7,11 +7,20 @@ library(plyr)
 #Function to read all database from csv
 
 ParallelReader <- function(){
-  years  <- (1968:2020)
+  years  <- (1968:2021)
+  atp <- "C:/Users/Andrea/Documents/GitHub/TML-Database/"
+  wta <- "C:/Users/Andrea/Documents/GitHub/tennis_wta-master/wta_matches_"
+
+  #wta <- "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_"
+  #atp <- "https://raw.githubusercontent.com/JeffSackmann/tennis_atp/master/atp_matches_"
   
-  files <- paste0("C:/Users/Andrea/Documents/GitHub/TML-Database/", years, ".csv")
+  files <- paste0(atp, years, ".csv")
   
   files <- append(files, "C:/Users/Andrea/Documents/GitHub/TML-Database/ongoing_tourneys.csv")
+  
+  #files <- append(files, "C:/Users/Andrea/Documents/GitHub/Tennis-R-ecord-Tracker.csv")
+  
+  #files <- 'C:/Users/Andrea/Documents/GitHub/Tennis-R-ecord-Tracker/Sets.csv'
   
   print(files)
   

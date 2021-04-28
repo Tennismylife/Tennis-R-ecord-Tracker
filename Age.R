@@ -1,5 +1,5 @@
 source("Same.R")
-
+source("AgeFormat.R")
 
 EntrieOverallByAge <- function(order, stage) {
   
@@ -62,13 +62,14 @@ EntrieOverallByAge <- function(order, stage) {
   names(res)[3]  <- "Nat"
   names(res)[4]  <- "Player"
   
-  res <- res[1:20,]
+  res <- FormatAge(res)
   
   print(res)
 }
 
 
 EntrieSurfaceByAge <- function(court, order, stage) {
+  
   db <- removeTeamEvents(db)
   
   db <- db[surface == court]
@@ -131,14 +132,10 @@ EntrieSurfaceByAge <- function(court, order, stage) {
   names(res)[3]  <- "Nat"
   names(res)[4]  <- "Player"
   
-  res <- res[1:20,]
-  
   print(res)
 }
 
 EntriecategoryByAge <- function(category, order, stage) {
-  
-  db <- removeTeamEvents(db)
 
   dbm <- db[tourney_level == category]
   
@@ -200,16 +197,21 @@ EntriecategoryByAge <- function(category, order, stage) {
   names(res)[3]  <- "Nat"
   names(res)[4]  <- "Player"
   
-  res <- res[1:20,]
+  print(res)
+  
+  #res <- FormatAge(res)
   
   print(res)
 }
 
 
 
-EntrieTourByAge <- function(tournament, order, stage) {
+EntrieTourByAge <- function(id, order, stage) {
   
-  dbm <- db[tourney_name == tournament]
+  ## only select matches of a tournament
+  db$tid <- sub("^[^-]*", "", db$tourney_id)
+  
+  dbm <- db[tid == id]
   
   if(stage != 'W' & stage!='0')
     dbm <- dbm[round == stage]
@@ -249,6 +251,7 @@ EntrieTourByAge <- function(tournament, order, stage) {
   else 
     res <- wins
   
+  
   res$tourney_id <- substr(res$tourney_id, 0, 4)
   
   res$age <- substr(res$age, 0, 5)
@@ -264,13 +267,12 @@ EntrieTourByAge <- function(tournament, order, stage) {
     res <- res[order(age)] 
   } 
   
+  res <- FormatAge(res)
+  
   names(res)[1] <- "Tournament"
   names(res)[2] <- "Year"
   names(res)[3]  <- "Nat"
   names(res)[4]  <- "Player"
-  
-  
-  res <- res[1:20,]
   
   print(res)
 }

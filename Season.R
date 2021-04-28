@@ -39,9 +39,7 @@ EntriesSeason <- function() {
   names(season)[2] <- "Season"
   names(season)[3] <- "Entries"
   
-  entry <- season[order(-Entries)] 
-  
-  entry <- entry[1:100,]
+  entry <- season[order(-Entries)]
   
   print(entry)
   
@@ -49,8 +47,11 @@ EntriesSeason <- function() {
 
 SameSeasonWins <- function() {
   
+  ## drop walkover matches (not countable)
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  
   #tournaments won
-  wins <- db[,c('winner_name','tourney_id')]
+  wins <- db[,c('loser_name','tourney_id')]
   
   #extract year from tourney_date
   wins$tourney_id <- stringr::str_sub(wins$tourney_id, 0 ,4)
@@ -63,14 +64,8 @@ SameSeasonWins <- function() {
   
   names(sameseason)[1] <- "Player"
   names(sameseason)[2] <- "Season"
-
-  print(sameseason) 
-  
-  sameseason <- sameseason[Season  < 1989]
   
   entry <- sameseason[order(-N)] 
-  
-  entry <- entry[1:300,]
   
   print(entry)
   
@@ -79,23 +74,22 @@ SameSeasonWins <- function() {
 
 
 SameSeasonRound <- function(stage) {
+  
   db <- removeTeamEvents(db)
   
-  dbm <- db
-  
-  dbm <- dbm[!dbm$score=="ABN" & !dbm$score=="(ABN)" & !str_detect(dbm$score, "(WEA)")]
+  db <- db[!db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
   
   ## get round matches
   if(stage !='W' & stage !='0')
-    dbm <- dbm[round == stage]
+    db <- db[round == stage]
   
   if(stage =='W')
-    dbm <- dbm[round == 'F']
+    db <- db[round == 'F']
   
-  wins <- dbm[,c('winner_name','tourney_id', 'tourney_name', 'round')]
+  wins <- db[,c('winner_name','tourney_id', 'tourney_name', 'round')]
   
   if(stage !='W')
-    losses <- dbm[,c('loser_name','tourney_id', 'tourney_name', 'round')]
+    losses <- db[,c('loser_name','tourney_id', 'tourney_name', 'round')]
   
   names(wins)[1] <- "name"
   
@@ -119,8 +113,35 @@ SameSeasonRound <- function(stage) {
   names(same)[2] <- "Season"
   names(same)[3] <- "N"
   
-  season <- same[order(-N)] 
-  season <- season[1:400,]
+  season <- same[order(-N)]
   
   print(season)
 }
+
+
+SeasonPercentage <- function(){
+  
+  # #extract year from tourney_date
+  db$year <- stringr::str_sub(db$tourney_id, 0 ,4)
+  
+  year <- dplyr::pull(db, year)
+  
+  year <- unique(year)
+  
+  stat <-  PercentageYearByYear(year[1], db, player)
+  
+  print(stat)
+  
+  for (i in 2:(length(year))) {
+    stat2 <-  PercentageYearByYear(year[i], db, player)
+    stat <- rbind(stat, stat2, fill = TRUE)
+  }
+  
+  stat <- add_column(stat, year, .after = "name")
+  
+  ## order by decreasing total matches
+  setorder(stat, -percentage)
+
+  stat
+}
+

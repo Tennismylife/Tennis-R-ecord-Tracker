@@ -1,33 +1,33 @@
-TimespanTournamentEntry <- function(tournament1, tournament2, tournament3, stage) {
+TimespanTournamentEntry <- function(id, stage) {
   
-  dbm <- db
-  ## only select tournaments in the previously defined pool
-  dbm <- dbm[tourney_name == tournament1 | tourney_name == tournament2 | tourney_name == tournament3]
+  ## only select matches of a tournament
+  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
   
+  dbm <- db[tourney_id == id]
   
-  print(length(stage))
-  if(length(stage) > 0 & stage != 'W' && stage !='0'){
+  if(length(stage) > 0 & stage != 'W' & stage !='0'){
     dbm <- dbm[round == stage]
   }
   
   if(stage == 'W')
     dbm <- dbm[round == 'F']
-  
+
   #tournaments won
   wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
-  
+
   #tournaments lost
   if(stage !='W')
     losses <- unique(dbm[,c('loser_name','tourney_name','tourney_date', 'loser_age')])
-  
+
   ## common name to merge with
   names(wins)[1] <- "name"
   names(wins)[4] <- "age"
-  
+
   if(stage !='W'){
     ## common name to merge with
     names(losses)[1] <- "name"
     names(losses)[4] <- "age"
+    
     ## merge the tables by "name"
     res <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all=TRUE)
   }else{
@@ -36,54 +36,52 @@ TimespanTournamentEntry <- function(tournament1, tournament2, tournament3, stage
   
   #transform date format
   res$tourney_date <- lubridate::ymd(res$tourney_date)
-  
+
   #Select first and last element in date by name
   firstandlastdate<- res[, .SD[c(1,.N)], by=name]
 
   #Select first date for entry
   firstdate <- firstandlastdate[, .SD[c(1)], by=name]
-  
+
   #Select last date for entry
   lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
-  
+
   #merge first and last date
   timespan<-cbind(firstdate,lastdate$tourney_date)
-  
+
   #rename columns
   names(timespan)[3] <- "first_date"
   names(timespan)[5] <- "last_date"
-  
+
   #erase age column
   timespan$age <- NULL
-  
-  print(timespan)
-  
+
   #calculate date diff by days
   timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
 
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  
+
   #rename columns
   names(timespan)[1] <- "Player"
   names(timespan)[2] <- "Tournament"
   names(timespan)[3] <- "1st date"
   names(timespan)[4] <- "last date"
   names(timespan)[5] <- "days"
-
-  timespan <- timespan[1:20,]
+  
   print(timespan)
+  
 }
 
-TimespanTournamentWins <- function(tournament1, tournament2, tournament3) {
+TimespanTournamentWins <- function(id) {
   
-  db <- removeTeamEvents(db)
+  ## only select matches of a tournament
+  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
   
-  ## only select tournaments in the previously defined pool
-  dbm <- db[(tourney_name == tournament1 | tourney_name == tournament2 | tourney_name == tournament3)]
+  db <- db[tourney_id == id]
   
   #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
+  wins <- unique(db[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
   
   #transform date format
   wins$tourney_date <- lubridate::ymd(wins$tourney_date)
@@ -168,7 +166,6 @@ TimespanOverallWins <- function() {
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
   
-  timespan <- timespan[1:100,]
   print(timespan)
 }
 
@@ -221,9 +218,7 @@ TimespanCategoryWins <- function(category) {
   
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  f
   
-  timespan <- timespan[1:100,]
   print(timespan)
 }
 
@@ -278,7 +273,6 @@ TimespaSurfaceWins <- function(court) {
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
   
-  timespan <- timespan[1:100,]
   print(timespan)
 }
 
@@ -290,7 +284,6 @@ TimespanOverallEntry <- function(stage) {
   ## only select tournaments in the previously defined pool
   dbm <- db
   
-  print(length(stage))
   if(length(stage) > 0 & stage != 'W' && stage!='0')
     dbm <- dbm[round == stage]
   
@@ -358,19 +351,17 @@ TimespanOverallEntry <- function(stage) {
   names(timespan)[5] <- "last date"
   names(timespan)[6] <- "days"
   
-  
-  timespan <- timespan[1:20,]
   print(timespan)
   
 }
 
 
 TimespanCategoryEntry <- function(category, stage) {
+  
   dbm <- db
+  
   dbm <- dbm[tourney_level == category]
   
-  ## only select tournaments in the previously defined pool
-  print(length(stage))
   if(length(stage) > 0 & stage != 'W' && stage !='0'){
     dbm <- dbm[round == stage]
   }
@@ -440,8 +431,6 @@ TimespanCategoryEntry <- function(category, stage) {
   names(timespan)[5] <- "last date"
   names(timespan)[6] <- "days"
   
-  timespan <- timespan[1:20,]
-  
   print(timespan)
 }
 
@@ -451,10 +440,8 @@ TimespaSurfaceEntry <- function(court, stage) {
   
   dbm <- db
   
-  
   dbm <- dbm[surface == court]
   
-  print(length(stage))
   if(length(stage) > 0 & stage != 'W' && stage !='0'){
     dbm <- dbm[round == stage]
   }
@@ -524,9 +511,28 @@ TimespaSurfaceEntry <- function(court, stage) {
   names(timespan)[5] <- "last date"
   names(timespan)[6] <- "days"
   
-  timespan <- timespan[1:20,]
+  
   print(timespan)
 }
 
 
-
+SameTournamentTimespan <- function(){
+  
+  ## only select matches of a tournament
+  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
+  
+  stat <- NULL
+  
+  tour <- unique(dplyr::pull(db, tourney_id))
+  
+  for(i in 1:length(tour)){
+    
+    stat2 <- TimespanTournamentEntry(tour[i], 'W')
+    
+    stat <- rbind(stat, stat2)
+    
+  }
+  
+  stat <- subset(stat, days > 5000)
+  
+}

@@ -1,98 +1,85 @@
-library("xlsx")
-library("dplyr")
-library("stringr")
 library(tableHTML)
 
 #Main
+source("Aces.R")
 source("Age.R")
+source("Bagel.R")
 source("AverageAge.R")
+source("Consecutive.R")
 source("Counter.R")
 source("CounterSeason.R")
 source("Entries.R")
 source("Example.R")
+source("H2H.R")
 source("Least.R")
+source("Length.R")
 source("Ranking.R")
 source("Reader.R")
+source("Remover.R")
 source("Percentage.R")
 source("Played.R")
-source("Player.R")
 source("Same.R")
 source("Season.R")
 source("Wins.R")
 source("Timespan.R")
 source("Nationality.R")
+source("Tiebreak.R")
 
-#install.packages('splitstackshape')
 #Read database from csv
 db <- ParallelReader()
 
-# db <- db[tourney_level == 'G' & round == 'F']
-# 
-# 
-# #extract year from tourney_date
-# db$tourney_id <- stringr::str_sub(db$tourney_id, 0 ,4)
-# 
-# stat <- unique(db[,c("tourney_id","winner_name")])
-# 
-# library(plyr)
-# stat <- ddply(stat, .(winner_name), nrow)
-# 
-# print(stat)
-# ## order by decreasing
-# setorder(stat, -V1, na.last=FALSE)
-
-# #extract year from tourney_date
-
 #player <- 'Novak Djokovic'
+
+#Remove or add team events matches
 #db <- removeTeamEvents(db)
 
-#player <- 'Novak Djokovic'
-#stat <- db[(winner_name == 'Rafael Nadal' & loser_name == 'Roger Federer')  | (winner_name == 'Roger Federer' & loser_name == 'Rafael Nadal')]
+#db$winner_rank <- as.integer(db$winner_rank)
+#db$loser_rank <- as.integer(db$loser_rank)
 
+## get rid of NAs, have 0 instead
+#db[is.na(db)] <- 0
 
-stat <- LeastSetToWintour()
+stat <- AllATPWinsBySurface()
 
-#stat <- stat[, winner_points:=w_1stWon + w_2ndWon + (l_svpt - l_1stWon - l_2ndWon)]
+#stat <- db[round == 'SF' & tourney_level == 'M']
 
-#stat <- stat[, loser_points:=l_1stWon + l_2ndWon + (w_svpt - w_1stWon - w_2ndWon)]
+#stat <- db[winner_name == 'Roger Federer' & tourney_level == 'M' & round == 'SF']
 
+#stat <- db[(winner_name == 'Roger Federer' | loser_name == 'Roger Federer') & tourney_level == 'M']
 
-#stat <- stat[, diff:=winner_points - loser_points]
+#stat <- db[loser_rank == 1]
 
+## only select matches of a tournament
+#stat$id <- sub("^[^-]*", "", stat$tourney_id)
 
-# #extract year from tourney_date
+#stat <- stat[id == '-410']
+
+#stat <- getanID(stat, "winner_name")
+
+#stat <- stat[.id == 1]
+
+## drop walkover matches (not countable)
+#stat <- stat[!stat$score=="W/O" & !stat$score=="DEF" & !str_detect(stat$score, "WEA") & !str_detect(stat$score, "ABN")]
+
+#extract year from tourney_date
 #stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
 
-#extract id from tourney_id
-#stat$tourney_id <- sub("^[^-]*", "", stat$tourney_id)
+# require(dplyr)
+# stat<- stat %>%
+#   group_by(year) %>%
+#   tally()
 
-#stat <- stat[tourney_id > 1989]
-
-#stat[is.na(stat$minutes)] <- 0
-
-#calculate sum by edition
-#stat <- aggregate(stat$minutes, by = list(stat$tourney_id), FUN=sum)
-
-#stat <- stat[,c("tourney_id", "tourney_name")]
-
-#officialName <- unique(stat[,c('tourney_id', 'tourney_name')])
-#officialName$tourney_id <- sub("^[^-]*", "", officialName$tourney_id)
-
-#same <- left_join(officialName, stat, by="tourney_id")
+#stat$winner_age<- suppressWarnings(as.numeric(str_replace_all(stat$winner_age,pattern=',',replacement='.')))
+#stat$winner_age <- substr(stat$winner_age, 0, 5)
 
 ## order by decreasing
-#setorder(stat, minutes, na.last=FALSE)
+#setorder(stat, -w_bpFaced, na.last=FALSE)
 
-#print(same)
+#stat <- Formatwinner_age(stat)
 
+#set range years
+#stat <- stat[year == 1982]
 
-#stat <- same[,c("winner_name", "tourney_name.x", "year")]
-
-## order by decreasing
-#stat <- setorder(stat, -winner_name, na.last=FALSE)
+#stat <- stat[,c("tourney_name", "year", "round", "winner_name", "loser_name", "score")]
 
 write_tableHTML(tableHTML(stat), file = paste("Test.html"))
-
-
-
-

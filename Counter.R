@@ -1,9 +1,9 @@
 CountOverallRound <- function(stage) {
 
-    
   db <- removeTeamEvents(db)
 
-  db <- db[winner_age > 30]
+  if(stage == 'W')
+    db <- db[!str_detect(db$score, "WEA") & !str_detect(db$score, "ABN")]
   
   dbm <- db  
   
@@ -11,7 +11,7 @@ CountOverallRound <- function(stage) {
     dbm <- dbm[round == stage]
   
   if(stage == 'W')
-    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)' & !str_detect(dbm$score, "(WEA)")]
+    dbm <- dbm[round == 'F' & !str_detect(dbm$score, "WEA")]
 
   ## wins
   wins <- dbm[,.N, by=winner_name]
@@ -53,7 +53,7 @@ CountOverallRound <- function(stage) {
    else
   res <- res[,c('name', 'wins')]
   
-  res <- res[1:100,]
+  #res <- res[1:100,]
   
   print(res)
 }
@@ -61,16 +61,15 @@ CountOverallRound <- function(stage) {
 
 CountSurfaceRound <- function(court, stage) {
   
-  db <- removeTeamEvents(db)
-  
   dbm <- db
+  
   dbm <- dbm[surface == court]
   
   if(stage != 'W')
     dbm <- dbm[round == stage]
   
   if(stage == 'W')
-    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)' & !str_detect(dbm$score, "(WEA)")]
+    dbm <- dbm[round == 'F' & score!='ABN' & score!='(ABN)' & !str_detect(dbm$score, "WEA")]
   
   ## wins
   wins <- dbm[,.N, by=winner_name]
@@ -99,8 +98,6 @@ CountSurfaceRound <- function(court, stage) {
   if(stage != 'W')
     res <- res[, played:=wins+losses]
   
-  print(res)
-  
   ## order by decreasing total matches
   if(stage != 'W')
     setorder(res, -played)
@@ -112,15 +109,13 @@ CountSurfaceRound <- function(court, stage) {
   else
     res <- res[,c('name', 'wins')]
   
-  res <- res[1:20,]
+  #res <- res[1:20,]
   print(res)
 }
 
 
 CountCategoryRound <- function(category, stage) {
-  
-  db <- removeTeamEvents(db)
-  
+
   db <- db[tourney_level == category]
   
   if(stage != 'W')
@@ -156,8 +151,6 @@ CountCategoryRound <- function(category, stage) {
   if(stage != 'W')
     res <- res[, played:=wins+losses]
   
-  print(res)
-  
   ## order by decreasing total matches
   if(stage != 'W')
     setorder(res, -played)
@@ -169,15 +162,18 @@ CountCategoryRound <- function(category, stage) {
   else
     res <- res[,c('name', 'wins')]
   
+  
   #res <- res[1:20,]
   print(res)
 }
 
 
-CountTourRound <- function(tournament, stage) {
+CountTourRound <- function(id, stage) {
   
-  dbm <- db
-  dbm <- dbm[tourney_name == tournament]
+  ## only select matches of a tournament
+  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
+  
+  dbm <- db[tourney_id == id]
   
   if(stage != 'W')
     dbm <- dbm[round == stage]
