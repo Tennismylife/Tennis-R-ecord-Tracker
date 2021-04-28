@@ -27,7 +27,7 @@ After data loading you can calculate the first records. The simplest one is to c
 
 Such like Played.R, Wins.R collects the records based on winning matches (a subcategory of played)
 
-* Entries
+# Entries
 
 Collects all scripts to count the entries by player
 
@@ -36,7 +36,7 @@ Collects all scripts to count the entries by player
 Part I: Collects all scripts to find timespan between the same round on: overall, surface, category, tournament
 Part II: As Part I but focused on entries
 
-* Counter
+# Counter
 
 Collects all scripts to count the rounds (including triumph) collected by players, divided according to sub-categories listed in "Recordology"
 
@@ -44,7 +44,7 @@ Collects all scripts to count the rounds (including triumph) collected by player
 
 Implements the big categories known as "oldest" and "youngest". Setting a decreasing ordering or an increascing one you can order the records by players age
 
-* AverageAgeTour
+# AverageAgeTour
 
 Particular scripts to collect the average ages year-by-year in a particular round of a specific tournament (or all main draw)
 
@@ -76,13 +76,57 @@ Scripts to focus the records on winners and losers nationality (on winner_ioc an
 
 Scripts to find records about scored aces by a player or tournament or season
 
+## MostAces
+
+Ranking of players who have scored the most aces in their career
+
+## MostAcesinASeasonByPlayer
+
+Total aces scored by a player in a season
+
+## MostAcesinASlamByAPlayer
+
+Total aces scored by a player in a given Slam
+
+## RatioAcesinASlamByPlayer
+
+Ratio between aces scored on the total number of service points by player
+
+## MostAcesBySlammer
+
+Ranking of players who have scored the most aces in a Slam by a winner
+
 # Bagel
 
 '6-0' or '0-6' scored by player with all matches
 
+## ListMatchesBagel
+
+Matches list of a tennis player in which he scored a bagel (6-0)
+
+## MostBagel
+
+Ranking of those who have scored the most bagels in their career
+
 # H2H
 
 Calculate stats in all match-ups between 2 players
+
+## MostRecurrentH2HinASeason
+
+Look for the most recurring match-ups in a single season
+
+## VirginH2H2
+
+Find all H2Hs where a player has never won a single match
+
+## H2HTimespan
+
+H2Hs rankings in which more time has passed between the 1st and the last match
+
+## BeatSamePlayer
+
+Player who has suffered the most defeats by a single player
 
 # Length
 
@@ -99,6 +143,34 @@ All scripts for the decisive game
 # Ranking
 
 Scripts based on parameters 'winner_rank' or 'loser_rank'
+
+# Consecutive
+
+A powerful engine to find all record with a consecutive pattern
+
+# Least
+
+Calculate the statistics where you spent the least to reach an achievement
+
+## LeastMinuteToRound
+
+Less time spent reaching a round
+
+## LeastBreakToRound
+
+Less games lost to serve to reach a round
+
+## LeastGameToReachRound
+
+Less games lost to reach a round
+
+## LeastSetToWintour
+
+Less sets to win an ATP Tour title
+
+## NoDroppedSetTitle
+
+Tournaments won where the winner has never lost a set
 
 # Example
 
