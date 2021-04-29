@@ -76,23 +76,23 @@ Scripts to focus the records on winners and losers nationality (on winner_ioc an
 
 Scripts to find records about scored aces by a player or tournament or season
 
-## MostAces
+* MostAces
 
 Ranking of players who have scored the most aces in their career
 
-## MostAcesinASeasonByPlayer
+* MostAcesinASeasonByPlayer
 
 Total aces scored by a player in a season
 
-## MostAcesinASlamByAPlayer
+* MostAcesinASlamByAPlayer
 
 Total aces scored by a player in a given Slam
 
-## RatioAcesinASlamByPlayer
+* RatioAcesinASlamByPlayer
 
 Ratio between aces scored on the total number of service points by player
 
-## MostAcesBySlammer
+* MostAcesBySlammer
 
 Ranking of players who have scored the most aces in a Slam by a winner
 
@@ -100,11 +100,11 @@ Ranking of players who have scored the most aces in a Slam by a winner
 
 '6-0' or '0-6' scored by player with all matches
 
-## ListMatchesBagel
+* ListMatchesBagel
 
 Matches list of a tennis player in which he scored a bagel (6-0)
 
-## MostBagel
+* MostBagel
 
 Ranking of those who have scored the most bagels in their career
 
@@ -112,19 +112,19 @@ Ranking of those who have scored the most bagels in their career
 
 Calculate stats in all match-ups between 2 players
 
-## MostRecurrentH2HinASeason
+* MostRecurrentH2HinASeason
 
 Look for the most recurring match-ups in a single season
 
-## VirginH2H2
+* VirginH2H2
 
 Find all H2Hs where a player has never won a single match
 
-## H2HTimespan
+* H2HTimespan
 
 H2Hs rankings in which more time has passed between the 1st and the last match
 
-## BeatSamePlayer
+* BeatSamePlayer
 
 Player who has suffered the most defeats by a single player
 
@@ -152,23 +152,23 @@ A powerful engine to find all record with a consecutive pattern
 
 Calculate the statistics where you spent the least to reach an achievement
 
-## LeastMinuteToRound
+* LeastMinuteToRound
 
 Less time spent reaching a round
 
-## LeastBreakToRound
+* LeastBreakToRound
 
 Less games lost to serve to reach a round
 
-## LeastGameToReachRound
+* LeastGameToReachRound
 
 Less games lost to reach a round
 
-## LeastSetToWintour
+* LeastSetToWintour
 
 Less sets to win an ATP Tour title
 
-## NoDroppedSetTitle
+* NoDroppedSetTitle
 
 Tournaments won where the winner has never lost a set
 
@@ -176,143 +176,143 @@ Tournaments won where the winner has never lost a set
 
 Collection of miscellaneous functions to find records, not categorized
 
-## MostWinsNoSlammer
+* MostWinsNoSlammer
 
 Standings of players who have won the most matches in a Slam without ever winning a title
 
-## PercentageInSlamsVsTop10
+* PercentageInSlamsVsTop10
 
 Win rate against Top 10s in Slams
 
-## TimeToWinSlam
+* TimeToWinSlam
 
 Standings of players who have spent the least time on the catch a  Slam
 
-## PercentageAsNumber1
+* PercentageAsNumber1
 
 Win rate for the current ATP No. 1
 
-## WinsAgainstNumber1
+* WinsAgainstNumber1
 
 Standings of players who have beaten the number 1 several times
 
-## Most5SetterPlayed
+* Most5SetterPlayed
 
 Standings of players who have played the most games in the 5th set
 
-## NoBig3inQFs
+* NoBig3inQFs
 
 Tournaments where there aren't Federer, Nadal & Djokovic in quarterfinals
 
-## RoundAtAge
+* RoundAtAge
 
 Rounds collected in a specific age (i.e. 24.56 years old)
 
-## PercentageEntryWinsinCategorySurfaceOverall
+* PercentageEntryWinsinCategorySurfaceOverall
 
 Ratio of participations in tournaments on the same surface (or overall)
 
-## PercentageSameSeasonbyPlayer
+* PercentageSameSeasonbyPlayer
 
 Year-to-year win rate for a given player
 
-## MostEntriesNoTitle
+* MostEntriesNoTitle
 
 Most appearances without ever winning a title
 
-## Top10ToWinMasters
+* Top10ToWinMasters
 
 Number of Top 10 batted to catch an ATP Masters 1000 tournament
 
-## LessWinsCategorybyWinner
+* LessWinsCategorybyWinner
 
 Ranking of who has won the fewest matches among the winners of a title
 
-## AgeOfNTitle
+* AgeOfNTitle
 
 Find the age at which a certain achievement has been reached
 
-## NWinsatAge
+* NWinsatAge
 
 Number of wins collected at a certain age
 
-## QualifiersinRound
+* QualifiersinRound
 
 Number of qualifiers in a given round
 
-## RetirementsInASlam
+* RetirementsInASlam
 
 Standings of the Slams in which there have been more retirements
 
-## AgeWhoWillMakeARound
+* AgeWhoWillMakeARound
 
 Age of a player who will then reach a certain turn
 
-## AllTournamentsRoll
+* AllTournamentsRoll
 
 Collect all wins-losses for a specific player in all tournaments where he joined
 
-## ConsecutiveWon1stSetWins
+* ConsecutiveWon1stSetWins
 
 Ranking of those who have won the most matches in a row by winning the 1st set
 
-## won1stWins
+* won1stWins
 
 Ranking of those who have won the most matches by winning the 1st set
 
-## Beat123intheSametournament
+* Beat123intheSametournament
 
 Tournaments where a player has defeated ATP No. 1, 2 and 3
 
-## OldestPlayerstoWin1stTitle
+* OldestPlayerstoWin1stTitle
 
 Ranking of the oldest players to win a tournament
 
-## YoungestToWinAMatchinSlams
+* YoungestToWinAMatchinSlams
 
 Ranking of the youngest players to win a match in a Slam
 
-## consecutiveSetsWon
+* consecutiveSetsWon
 
 All streaks for a given player where he won a set
 
-## SameNation4Semifinalists
+* SameNation4Semifinalists
 
 Tournaments where all 4 semifinalists are from the same country
 
-## Top10inATournament
+* Top10inATournament
 
 Ranking of tournaments where there are more ATP Top 10s
 
-## RoundinCategoryWithNoFormerChampions
+* RoundinCategoryWithNoFormerChampions
 
 Round in a subset of tournaments where there aren't former champions (in this category)
 
-## TournamentsPlayedToReachARound
+* TournamentsPlayedToReachARound
 
 Tournaments played to reach a specific round
 
-## Totalbreaks
+* Totalbreaks
 
 Calculate the breaks on service for all matches
 
-## WinningPercentageClayOnTotal
+* WinningPercentageClayOnTotal
 
 Win rates on a surface for those who have collected a certain number of ATP wins
 
-## TournamentWonByABig3WillAllInDraw
+* TournamentWonByABig3WillAllInDraw
 
 Tournament won by Federer or Nadal or Djokovic where all Big 3 were in the main draw
 
-## TournamentsPlayedToReachNARound
+* TournamentsPlayedToReachNARound
 
 Tournaments played by a player to reach N rounds
 
-## AllATPWinsBySurface
+* AllATPWinsBySurface
 
 Collect all wins by 4 surfaces for all players
 
-## Totalbreakpoints
+* Totalbreakpoints
 
 Calculate the break points for all matches
 
@@ -322,3 +322,8 @@ Calculate the break points for all matches
 Here the map to find a specific record in its subest
 
 <a href="https://ibb.co/s6ZVRd3"><img src="https://i.ibb.co/k9tSBsc/Immagine.png" alt="Immagine" border="0"></a>
+
+
+# License
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Dataset" property="dct:title" rel="dct:type">This app and all its algorithms</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://www.tennismylife.org/" property="cc:attributionName" rel="cc:attributionURL">TennisMyLife</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>. Attribution is required. Non-commercial use only.

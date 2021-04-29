@@ -8,20 +8,11 @@ library(plyr)
 
 ParallelReader <- function(){
   years  <- (1968:2021)
-  atp <- "C:/Users/Andrea/Documents/GitHub/TML-Database/"
-  wta <- "C:/Users/Andrea/Documents/GitHub/tennis_wta-master/wta_matches_"
 
-  #wta <- "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_"
-  #atp <- "https://raw.githubusercontent.com/JeffSackmann/tennis_atp/master/atp_matches_"
-  
+  atp <- "https://raw.githubusercontent.com/Tennismylife/TML-Database/master/"
   files <- paste0(atp, years, ".csv")
   
-  files <- append(files, "C:/Users/Andrea/Documents/GitHub/TML-Database/ongoing_tourneys.csv")
-  
-  #files <- append(files, "C:/Users/Andrea/Documents/GitHub/Tennis-R-ecord-Tracker.csv")
-  
-  #files <- 'C:/Users/Andrea/Documents/GitHub/Tennis-R-ecord-Tracker/Sets.csv'
-  
+  files <- append(files, "https://raw.githubusercontent.com/Tennismylife/TML-Database/master/ongoing_tourneys.csv")
   print(files)
   
   #create f, which is a list of data frames
