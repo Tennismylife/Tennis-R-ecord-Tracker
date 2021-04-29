@@ -50,7 +50,7 @@ PercentageInSlamsVsTop10 <- function() {
   db <- db[surface == 'Hard']
   
   ## 5th
-  #db <- db[str_count(db$score, "-") == '5']
+  db <- db[str_count(db$score, "-") == '5']
   
   #Decider
   #db <- db[(str_count(db$score, "-") == '5' & best_of == 5) | (str_count(db$score, "-") == '3' & best_of == 3)]
@@ -1367,9 +1367,9 @@ TournamentsPlayedToReachNARound <- function(){
   
   db <- removeTeamEvents(db)
   
-  turn <- 'QF'
+  turn <- 'F'
   
-  N <- 6 
+  N <- 20
   
   stat <- db[round == turn]
   stat <- getanID(stat, "winner_name")
@@ -1377,17 +1377,9 @@ TournamentsPlayedToReachNARound <- function(){
   
   players <- unique(dplyr::pull(stat, winner_name))
   
-  Onlyplayer <- stat[winner_name == players[1]]
+  toreach <- NULL
   
-  stat2 <- db[(winner_name == players[1] | loser_name == players[1])]
-  stat2$loser_name <- players[1]
-  stat2 <- unique(stat2[, c('tourney_id', 'loser_name')])
-  stat2 <- getanID(stat2, "loser_name")
-  
-  toreach <- subset(stat2, (stat2$tourney_id %in% Onlyplayer$tourney_id))
-  
-  
-  for (i in 2:length((players))) {
+  for (i in 1:length((players))) {
 
     print(players[i])
 
