@@ -39,7 +39,7 @@ db <- ParallelReader()
 ## get rid of NAs, have 0 instead
 #db[is.na(db)] <- 0
 
-stat <- TournamentsPlayedToReachNARound()
+stat <- SeasonPercentage()
 
 #stat <- db[round == 'SF' & tourney_level == 'M']
 

@@ -124,24 +124,27 @@ SeasonPercentage <- function(){
   # #extract year from tourney_date
   db$year <- stringr::str_sub(db$tourney_id, 0 ,4)
   
-  year <- dplyr::pull(db, year)
+  year <- unique(dplyr::pull(db, year))
   
-  year <- unique(year)
-  
-  stat <-  PercentageYearByYear(year[1], db, player)
+  stat <-  NULL
   
   print(stat)
   
-  for (i in 2:(length(year))) {
-    stat2 <-  PercentageYearByYear(year[i], db, player)
+  for (i in 1:(length(year))) {
+    
+    print(year[i])
+    
+    stat2 <-  PercentageYearByYear(year[i], db)
+    
+    stat2 <- add_column(stat2, year[i], .after = "name")
+    
     stat <- rbind(stat, stat2, fill = TRUE)
+    
+
   }
-  
-  stat <- add_column(stat, year, .after = "name")
   
   ## order by decreasing total matches
   setorder(stat, -percentage)
 
   stat
 }
-

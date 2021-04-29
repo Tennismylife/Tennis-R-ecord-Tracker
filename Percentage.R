@@ -500,3 +500,51 @@ Percentage3rdSet <- function() {
   print(res)
   
 }
+
+
+PercentageYearByYear <- function(season, db) {
+  
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !str_detect(db$score, "WEA") & !str_detect(db$score, "ABN")]
+  
+  # #extract year from tourney_date
+  db$year <- stringr::str_sub(db$tourney_id, 0 ,4)
+  
+  stat <- db[year == season]
+  
+  ## wins
+  wins <- stat[,.N, by=winner_name]
+  
+  ## losses
+  losses <- stat[,.N, by= loser_name]
+  
+  ## common name to merge with
+  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[2] <- "wins"
+  names(losses)[2] <- "losses"
+  
+  ## merge the tables by "name"
+  res <- merge(wins, losses, by = c("name"), all=TRUE)
+  
+  ## get rid of NAs, have 0 instead
+  res[is.na(res)] <- 0
+  
+  ## sum the wins and losses into a new column played
+  res <- res[, played:=wins+losses]
+  
+  res <- res[played > 10]
+  
+  res <- res[, percentage:=wins/played*100]
+  
+  #res <- res[name == player]
+  
+  res$percentage <- substr(res$percentage, 0, 5)
+  res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
+  
+  ## order by decreasing total matches
+  setorder(res, -percentage)
+  
+  res$percentage <- paste(res$percentage, "%")
+  
+  print(res)
+  
+}
