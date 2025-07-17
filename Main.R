@@ -32,7 +32,7 @@ source("Length.R")
 source("Lopside.R")
 source("Losses.R")
 source("Nationality.R")
-source("/Percentage/Percentage.R")
+source("Percentage/Percentage.R")
 source("Played.R")
 source("Ranking.R")
 source("Reader.R")
@@ -79,7 +79,7 @@ id <- 'SL28'
 
 #stat <- db[winner_ioc == 'ITA' & round == 'QF' & tourney_level == 'G']
 
-stat <- PercentageAllSlams()
+stat <- MinutesSpentRouteTo()
 
 #stat <- db[round == 'F' & tourney_level == 'G' & winner_ioc == 'ITA']
 
