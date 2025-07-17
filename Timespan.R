@@ -1,77 +1,72 @@
 TimespanTournamentEntry <- function(id, stage) {
+  library(data.table)
+  library(lubridate)
   
-  ## only select matches of a tournament
-  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
+  # Modify tourney_id column in the original 'db' by removing prefix before '-'
+  db[, tourney_id := sub("^[^-]*", "", tourney_id)]
   
-  dbm <- db[tourney_id == id]
+  # Filter rows where tourney_id matches the given id
+  filtered_db <- db[tourney_id == id]
   
-  if(length(stage) > 0 & stage != 'W' & stage !='0'){
-    dbm <- dbm[round == stage]
+  # Filter by stage if provided and not 'W' or '0'
+  if (length(stage) > 0 & stage != 'W' & stage != '0') {
+    filtered_db <- filtered_db[round == stage]
   }
   
-  if(stage == 'W')
-    dbm <- dbm[round == 'F']
-
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
-
-  #tournaments lost
-  if(stage !='W')
-    losses <- unique(dbm[,c('loser_name','tourney_name','tourney_date', 'loser_age')])
-
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[4] <- "age"
-
-  if(stage !='W'){
-    ## common name to merge with
-    names(losses)[1] <- "name"
-    names(losses)[4] <- "age"
+  # If stage is 'W', filter only finals round ('F')
+  if (stage == 'W') {
+    filtered_db <- filtered_db[round == 'F']
+  }
+  
+  # Get unique wins data (winner_name, tournament info, winner_age)
+  wins <- unique(filtered_db[, .(name = winner_name, tourney_name, tourney_date, age = winner_age)])
+  
+  # If stage is not 'W', also get unique losses data (loser_name, tournament info, loser_age)
+  if (stage != 'W') {
+    losses <- unique(db[, .(name = loser_name, tourney_name, tourney_date, age = loser_age)])
     
-    ## merge the tables by "name"
-    res <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all=TRUE)
-  }else{
-    res <- wins
+    # Merge wins and losses by player name, tournament, date, and age, including all rows
+    results <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all = TRUE)
+  } else {
+    results <- wins
   }
   
-  #transform date format
-  res$tourney_date <- lubridate::ymd(res$tourney_date)
-
-  #Select first and last element in date by name
-  firstandlastdate<- res[, .SD[c(1,.N)], by=name]
-
-  #Select first date for entry
-  firstdate <- firstandlastdate[, .SD[c(1)], by=name]
-
-  #Select last date for entry
-  lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
-
-  #merge first and last date
-  timespan<-cbind(firstdate,lastdate$tourney_date)
-
-  #rename columns
-  names(timespan)[3] <- "first_date"
-  names(timespan)[5] <- "last_date"
-
-  #erase age column
-  timespan$age <- NULL
-
-  #calculate date diff by days
-  timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
-
-  #order the stat by age
-  timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-
-  #rename columns
-  names(timespan)[1] <- "Player"
-  names(timespan)[2] <- "Tournament"
-  names(timespan)[3] <- "1st date"
-  names(timespan)[4] <- "last date"
-  names(timespan)[5] <- "days"
+  # Convert tournament date to Date format
+  results[, tourney_date := ymd(tourney_date)]
   
-  print(timespan)
+  # Select first and last tournament date per player
+  first_and_last <- results[, .SD[c(1, .N)], by = name]
   
+  # Extract the first tournament date per player
+  first_date <- first_and_last[, .SD[1], by = name]
+  
+  # Extract the last tournament date per player
+  last_date <- first_and_last[, .SD[.N], by = name]
+  
+  # Combine first and last date into one table
+  timespan <- cbind(first_date, last_date$tourney_date)
+  
+  # Rename columns for clarity
+  setnames(timespan, c("name", "tourney_name", "first_date", "age", "last_date"))
+  
+  # Remove the age column as it's not needed
+  timespan[, age := NULL]
+  
+  # Calculate difference in days between last and first tournament date
+  timespan[, days := as.numeric(difftime(last_date, first_date, units = "days"))]
+  
+  # Order the table by descending number of days (longest span first)
+  setorder(timespan, -days)
+  
+  # Rename columns for final output
+  setnames(timespan, c("name", "tourney_name", "1st date", "last date", "days"))
+  setnames(timespan, "name", "Player")
+  setnames(timespan, "tourney_name", "Tournament")
+  
+  # Return the resulting table
+  return(timespan)
 }
+
 
 TimespanTournamentWins <- function(id) {
   
@@ -114,425 +109,419 @@ TimespanTournamentWins <- function(id) {
   #order the stat by age
   timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
   
+  timespan <- timespan[1:20,]
+  
   print(timespan)
 }
 
 
 TimespanOverallWins <- function() {
+  library(data.table)
+  library(lubridate)
   
-  ## only select tournaments in the previously defined pool
-  dbm <- db
+  # Extract unique wins with relevant columns, renaming for consistency
+  wins <- unique(db[, .(name = winner_name, tourney_name, tourney_date, age = winner_age)])
   
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
+  # Convert tournament date to Date format
+  wins[, tourney_date := ymd(tourney_date)]
   
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[4] <- "age"
+  # Order wins by player name and tournament date
+  setorder(wins, name, tourney_date)
   
-  ## merge the tables by "name"
-  res <- wins
+  # Select the first and last tournament entry per player
+  first_and_last <- wins[, .SD[c(1, .N)], by = name]
   
-  #transform date format
-  res$tourney_date <- lubridate::ymd(res$tourney_date)
+  # Separate first and last entries
+  first_entry <- first_and_last[, .SD[1], by = name]
+  last_entry <- first_and_last[, .SD[.N], by = name]
   
-  #order by date in subgroup by player
-  res<-res[order(res$name,res$tourney_date),]
+  # Combine first and last entries into one table
+  timespan <- cbind(
+    first_entry,
+    last_tournament = last_entry$tourney_name,
+    last_date = last_entry$tourney_date
+  )
   
-  #Select first and last element in date by name
-  firstandlastdate<- res[, .SD[c(1,.N)], by=name]
+  # Rename columns for clarity
+  setnames(timespan, c("name", "first_tournament", "first_date", "age", "last_tournament", "last_date"))
   
-  #Select first date for entry
-  firstdate <- firstandlastdate[, .SD[c(1)], by=name]
+  # Remove age column as it’s not needed for timespan calculation
+  timespan[, age := NULL]
   
-  #Select last date for entry
-  lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
+  # Calculate days between first and last tournament win
+  timespan[, days := as.numeric(difftime(last_date, first_date, units = "days"))]
   
-  #merge first and last date
-  timespan<-cbind(firstdate,lastdate$tourney_name,lastdate$tourney_date)
+  # Order by timespan descending
+  setorder(timespan, -days)
   
-  #rename columns
-  names(timespan)[2] <- "first_tournament"
-  names(timespan)[3] <- "first_date"
-  names(timespan)[5] <- "last_tournament"
-  names(timespan)[6] <- "last_date"
+  # Select top 20 players with longest winning timespan
+  top20 <- timespan[1:20]
   
-  #erase age column
-  timespan$age <- NULL
-  
-  #calculate date diff by days
-  timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
-  
-  #order the stat by age
-  timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  
-  print(timespan)
+  return(top20)
 }
+
 
 TimespanCategoryWins <- function(category) {
-  ## only select tournaments in the previously defined pool
-  dbm <- db
+  library(data.table)
+  library(lubridate)
   
-  #select category matches
-  dbm <- db[tourney_level == category]
+  # Filter the dataset for tournaments of the given category
+  category_db <- db[tourney_level == category]
   
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
+  # Extract unique wins: winner name, tournament name, date, and winner age
+  wins <- unique(category_db[, .(name = winner_name, tourney_name, tourney_date, age = winner_age)])
   
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[4] <- "age"
+  # Convert tournament date to Date format
+  wins[, tourney_date := ymd(tourney_date)]
   
-  ## merge the tables by "name"
-  res <- wins
+  # Order by player name and tournament date
+  setorder(wins, name, tourney_date)
   
-  #transform date format
-  res$tourney_date <- lubridate::ymd(res$tourney_date)
+  # Select first and last tournament entry per player
+  first_and_last <- wins[, .SD[c(1, .N)], by = name]
   
-  #order by date in subgroup by player
-  res<-res[order(res$name,res$tourney_date),]
+  # Separate first and last entries
+  first_entry <- first_and_last[, .SD[1], by = name]
+  last_entry <- first_and_last[, .SD[.N], by = name]
   
-  #Select first and last element in date by name
-  firstandlastdate<- res[, .SD[c(1,.N)], by=name]
+  # Combine first and last entries into one table
+  timespan <- cbind(
+    first_entry,
+    last_tournament = last_entry$tourney_name,
+    last_date = last_entry$tourney_date
+  )
   
-  #Select first date for entry
-  firstdate <- firstandlastdate[, .SD[c(1)], by=name]
+  # Rename columns for clarity
+  setnames(timespan, c("name", "first_tournament", "first_date", "age", "last_tournament", "last_date"))
   
-  #Select last date for entry
-  lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
+  # Remove age column
+  timespan[, age := NULL]
   
-  #merge first and last date
-  timespan<-cbind(firstdate,lastdate$tourney_name,lastdate$tourney_date)
+  # Calculate days difference between first and last tournament win
+  timespan[, days := as.numeric(difftime(last_date, first_date, units = "days"))]
   
-  #rename columns
-  names(timespan)[2] <- "first_tournament"
-  names(timespan)[3] <- "first_date"
-  names(timespan)[5] <- "last_tournament"
-  names(timespan)[6] <- "last_date"
+  # Order descending by days difference
+  setorder(timespan, -days)
   
-  #erase age column
-  timespan$age <- NULL
+  # Select top 20 players with longest winning timespan in the category
+  top20 <- timespan[1:20]
   
-  #calculate date diff by days
-  timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
-  
-  #order the stat by age
-  timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  
-  print(timespan)
-}
-
-TimespaSurfaceWins <- function(court) {
-  
-  ## only select tournaments in the previously defined pool
-  dbm <- db
-  
-  #select category matches
-  dbm <- db[surface == court]
-  
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
-  
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[4] <- "age"
-  
-  ## merge the tables by "name"
-  res <- wins
-  
-  #transform date format
-  res$tourney_date <- lubridate::ymd(res$tourney_date)
-  
-  #order by date in subgroup by player
-  res<-res[order(res$name,res$tourney_date),]
-  
-  #Select first and last element in date by name
-  firstandlastdate<- res[, .SD[c(1,.N)], by=name]
-  
-  #Select first date for entry
-  firstdate <- firstandlastdate[, .SD[c(1)], by=name]
-  
-  #Select last date for entry
-  lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
-  
-  #merge first and last date
-  timespan<-cbind(firstdate,lastdate$tourney_name,lastdate$tourney_date)
-  
-  #rename columns
-  names(timespan)[2] <- "first_tournament"
-  names(timespan)[3] <- "first_date"
-  names(timespan)[5] <- "last_tournament"
-  names(timespan)[6] <- "last_date"
-  
-  #erase age column
-  timespan$age <- NULL
-  
-  #calculate date diff by days
-  timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
-  
-  #order the stat by age
-  timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  
-  print(timespan)
+  # Return the result instead of printing for better usability
+  return(top20)
 }
 
 
-################################################################################## ENTRY ##########################################################################
+TimespanSurfaceWins <- function(court) {
+  library(data.table)
+  library(lubridate)
+  
+  # Filter tournaments played on the specified surface
+  surface_db <- db[surface == court]
+  
+  # Extract unique wins: winner name, tournament name, date, and winner age
+  wins <- unique(surface_db[, .(name = winner_name, tourney_name, tourney_date, age = winner_age)])
+  
+  # Convert tournament dates to Date format
+  wins[, tourney_date := ymd(tourney_date)]
+  
+  # Order wins by player name and tournament date
+  setorder(wins, name, tourney_date)
+  
+  # Select first and last tournament win for each player
+  first_and_last <- wins[, .SD[c(1, .N)], by = name]
+  
+  # Separate first and last entries
+  first_entry <- first_and_last[, .SD[1], by = name]
+  last_entry <- first_and_last[, .SD[.N], by = name]
+  
+  # Combine first and last entries
+  timespan <- cbind(
+    first_entry,
+    last_tournament = last_entry$tourney_name,
+    last_date = last_entry$tourney_date
+  )
+  
+  # Rename columns for clarity
+  setnames(timespan, c("name", "first_tournament", "first_date", "age", "last_tournament", "last_date"))
+  
+  # Remove the age column (not needed here)
+  timespan[, age := NULL]
+  
+  # Calculate difference in days between last and first tournament win
+  timespan[, days := as.numeric(difftime(last_date, first_date, units = "days"))]
+  
+  # Order descending by days difference (longest winning span first)
+  setorder(timespan, -days)
+  
+  # Return top 20 players with longest winning timespan on the surface
+  return(timespan[1:20])
+}
+
+
+
+############## ENTRY #################
+
 TimespanOverallEntry <- function(stage) {
-  db <- removeTeamEvents(db)
-
-  ## only select tournaments in the previously defined pool
-  dbm <- db
+  library(data.table)
+  library(lubridate)
   
-  if(length(stage) > 0 & stage != 'W' && stage!='0')
-    dbm <- dbm[round == stage]
+  # Assuming removeTeamEvents is defined elsewhere and returns a filtered data.table
+  db_filtered <- removeTeamEvents(db)
   
-  if(stage == 'W')
-    dbm <- dbm[round == 'F']
-  
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
-  
-  #tournaments lost
-  if(stage !='W')
-  losses <- unique(dbm[,c('loser_name','tourney_name','tourney_date', 'loser_age')])
-  
-  names(wins)[1]<- "name"
-  names(wins)[4]<- "age"
-  
-  if(stage !='W'){
-  ## common name to merge with
-  names(losses)[1] <- "name"
-  names(losses)[4] <- "age"
-  ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all=TRUE)
-  }else{
-    res <- wins
+  # Filter by stage if specified and not 'W' or '0'
+  if (length(stage) > 0 & stage != 'W' & stage != '0') {
+    db_filtered <- db_filtered[round == stage]
   }
   
-  #transform date format
-  res$tourney_date <- lubridate::ymd(res$tourney_date)
+  # If stage is 'W', select only finals round ('F')
+  if (stage == 'W') {
+    db_filtered <- db_filtered[round == 'F']
+  }
   
-  #order by date in subgroup by player
-  res<-res[order(res$name,res$tourney_date),]
+  # Get unique wins with relevant columns
+  wins <- unique(db_filtered[, .(name = winner_name, tourney_name, tourney_date, age = winner_age)])
   
-  #Select first and last element in date by name
-  firstandlastdate<- res[, .SD[c(1,.N)], by=name]
+  # Get unique losses if stage is not 'W'
+  if (stage != 'W') {
+    losses <- unique(db_filtered[, .(name = loser_name, tourney_name, tourney_date, age = loser_age)])
+    
+    # Merge wins and losses on common keys (name, tournament, date, age)
+    results <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all = TRUE)
+  } else {
+    results <- wins
+  }
   
-  #Select first date for entry
-  firstdate <- firstandlastdate[, .SD[c(1)], by=name]
+  # Convert tournament dates to Date class
+  results[, tourney_date := ymd(tourney_date)]
   
-  #Select last date for entry
-  lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
+  # Order by player name and tournament date
+  setorder(results, name, tourney_date)
   
-  #merge first and last date
-  timespan<-cbind(firstdate,lastdate$tourney_name,lastdate$tourney_date)
+  # Select first and last tournament date per player
+  first_and_last <- results[, .SD[c(1, .N)], by = name]
   
-  #rename columns
-  names(timespan)[2] <- "first_tournament"
-  names(timespan)[3] <- "first_date"
-  names(timespan)[5] <- "last_tournament"
-  names(timespan)[6] <- "last_date"
+  # Separate first and last entries
+  first_entry <- first_and_last[, .SD[1], by = name]
+  last_entry <- first_and_last[, .SD[.N], by = name]
   
-  #erase age column
-  timespan$age <- NULL
+  # Combine first and last entries into one data.table
+  timespan <- cbind(
+    first_entry,
+    last_tournament = last_entry$tourney_name,
+    last_date = last_entry$tourney_date
+  )
   
-  #calculate date diff by days
-  timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
+  # Rename columns for clarity
+  setnames(timespan, 
+           old = c("name", "tourney_name", "tourney_date", "age", "last_tournament", "last_date"),
+           new = c("Player", "1st tournament", "1st date", "age", "last tournament", "last date"))
   
-  #order the stat by age
-  timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
+  # Remove age column
+  timespan[, age := NULL]
   
-  #rename columns
-  names(timespan)[1] <- "Player"
-  names(timespan)[2] <- "1st tournament"
-  names(timespan)[3] <- "1st date"
-  names(timespan)[4] <- "last tournament"
-  names(timespan)[5] <- "last date"
-  names(timespan)[6] <- "days"
+  # Calculate difference in days between last and first tournament entry
+  timespan[, days := as.numeric(difftime(`last date`, `1st date`, units = "days"))]
   
-  print(timespan)
+  # Order descending by days
+  setorder(timespan, -days)
   
+  # Return the final timespan data.table
+  return(timespan)
 }
+
 
 
 TimespanCategoryEntry <- function(category, stage) {
+  library(data.table)
+  library(lubridate)
   
-  dbm <- db
+  # Filter dataset for the given category
+  category_db <- db[tourney_level == category]
   
-  dbm <- dbm[tourney_level == category]
-  
-  if(length(stage) > 0 & stage != 'W' && stage !='0'){
-    dbm <- dbm[round == stage]
+  # Filter by stage if specified (and not 'W' or '0')
+  if (length(stage) > 0 & stage != 'W' & stage != '0') {
+    category_db <- category_db[round == stage]
   }
   
-  if(stage == 'W')
-    dbm <- dbm[round == 'F']
-  
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
-  
-  #tournaments lost
-  if(stage !='W')
-    losses <- unique(dbm[,c('loser_name','tourney_name','tourney_date', 'loser_age')])
-  
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[4] <- "age"
-  
-  if(stage !='W'){
-    ## common name to merge with
-    names(losses)[1] <- "name"
-    names(losses)[4] <- "age"
-    ## merge the tables by "name"
-    res <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all=TRUE)
-  }else{
-    res <- wins
+  # If stage is 'W', select only finals round ('F')
+  if (stage == 'W') {
+    category_db <- category_db[round == 'F']
   }
   
-  #transform date format
-  res$tourney_date <- lubridate::ymd(res$tourney_date)
+  # Unique tournaments won by players in the category and stage
+  wins <- unique(category_db[, .(name = winner_name, tourney_name, tourney_date, age = winner_age)])
   
-  #order by date in subgroup by player
-  res<-res[order(res$name,res$tourney_date),]
-  
-  #Select first and last element in date by name
-  firstandlastdate<- res[, .SD[c(1,.N)], by=name]
-  
-  #Select first date for entry
-  firstdate <- firstandlastdate[, .SD[c(1)], by=name]
-  
-  #Select last date for entry
-  lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
-  
-  #merge first and last date
-  timespan<-cbind(firstdate,lastdate$tourney_name,lastdate$tourney_date)
-  
-  #rename columns
-  names(timespan)[2] <- "first_tournament"
-  names(timespan)[3] <- "first_date"
-  names(timespan)[5] <- "last_tournament"
-  names(timespan)[6] <- "last_date"
-  
-  #erase age column
-  timespan$age <- NULL
-  
-  #calculate date diff by days
-  timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
-  
-  #order the stat by age
-  timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  
-  #rename columns
-  names(timespan)[1] <- "Player"
-  names(timespan)[2] <- "1st tournament"
-  names(timespan)[3] <- "1st date"
-  names(timespan)[4] <- "last tournament"
-  names(timespan)[5] <- "last date"
-  names(timespan)[6] <- "days"
-  
-  print(timespan)
-}
-
-TimespaSurfaceEntry <- function(court, stage) {
-  
-  db <- removeTeamEvents(db)
-  
-  dbm <- db
-  
-  dbm <- dbm[surface == court]
-  
-  if(length(stage) > 0 & stage != 'W' && stage !='0'){
-    dbm <- dbm[round == stage]
+  # Unique tournaments lost (only if stage is not 'W')
+  if (stage != 'W') {
+    losses <- unique(category_db[, .(name = loser_name, tourney_name, tourney_date, age = loser_age)])
+    
+    # Merge wins and losses by player, tournament, date, and age
+    results <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all = TRUE)
+  } else {
+    results <- wins
   }
   
-  if(stage == 'W')
-    dbm <- dbm[round == 'F']
+  # Convert tourney_date to Date format
+  results[, tourney_date := ymd(tourney_date)]
   
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date', 'winner_age')])
+  # Order by player name and tournament date
+  setorder(results, name, tourney_date)
   
-  #tournaments lost
-  if(stage !='W')
-  losses <- unique(dbm[,c('loser_name','tourney_name','tourney_date', 'loser_age')])
+  # Select first and last tournament date per player
+  first_and_last <- results[, .SD[c(1, .N)], by = name]
   
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[4] <- "age"
+  # Extract first and last entries separately
+  first_entry <- first_and_last[, .SD[1], by = name]
+  last_entry <- first_and_last[, .SD[.N], by = name]
   
-  if(stage !='W'){
-    ## common name to merge with
-    names(losses)[1] <- "name"
-    names(losses)[4] <- "age"
-    ## merge the tables by "name"
-    res <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all=TRUE)
-  }else{
-    res <- wins
-  }
+  # Combine first and last entries into one data.table
+  timespan <- cbind(
+    first_entry,
+    last_tournament = last_entry$tourney_name,
+    last_date = last_entry$tourney_date
+  )
   
-  #transform date format
-  res$tourney_date <- lubridate::ymd(res$tourney_date)
+  # Rename columns for clarity
+  setnames(timespan, 
+           old = c("name", "tourney_name", "tourney_date", "age", "last_tournament", "last_date"),
+           new = c("Player", "1st tournament", "1st date", "age", "last tournament", "last date"))
   
-  #order by date in subgroup by player
-  res<-res[order(res$name,res$tourney_date),]
+  # Remove age column as it is not used here
+  timespan[, age := NULL]
   
-  #Select first and last element in date by name
-  firstandlastdate<- res[, .SD[c(1,.N)], by=name]
+  # Calculate days difference between last and first tournament entry
+  timespan[, days := as.numeric(difftime(`last date`, `1st date`, units = "days"))]
   
-  #Select first date for entry
-  firstdate <- firstandlastdate[, .SD[c(1)], by=name]
+  # Order by days descending (longest span first)
+  setorder(timespan, -days)
   
-  #Select last date for entry
-  lastdate <-firstandlastdate[, .SD[c(.N)], by=name]
-  
-  #merge first and last date
-  timespan<-cbind(firstdate,lastdate$tourney_name,lastdate$tourney_date)
-  
-  #rename columns
-  names(timespan)[2] <- "first_tournament"
-  names(timespan)[3] <- "first_date"
-  names(timespan)[5] <- "last_tournament"
-  names(timespan)[6] <- "last_date"
-  
-  #erase age column
-  timespan$age <- NULL
-  
-  #calculate date diff by days
-  timespan$Days<- difftime(timespan$last_date ,timespan$first_date , units = c("days"))
-  
-  #order the stat by age
-  timespan <- timespan[order(timespan$Days, decreasing = TRUE),]
-  
-  #rename columns
-  names(timespan)[1] <- "Player"
-  names(timespan)[2] <- "1st tournament"
-  names(timespan)[3] <- "1st date"
-  names(timespan)[4] <- "last tournament"
-  names(timespan)[5] <- "last date"
-  names(timespan)[6] <- "days"
-  
-  
-  print(timespan)
+  # Return the resulting data.table
+  return(timespan)
 }
 
 
-SameTournamentTimespan <- function(){
+
+
+TimespanSurfaceEntry <- function(court, stage) {
+  library(data.table)
+  library(lubridate)
   
-  ## only select matches of a tournament
-  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
+  # Remove team events from db
+  clean_db <- removeTeamEvents(db)
   
-  stat <- NULL
+  # Filter dataset by surface (court)
+  filtered_db <- clean_db[surface == court]
   
-  tour <- unique(dplyr::pull(db, tourney_id))
-  
-  for(i in 1:length(tour)){
-    
-    stat2 <- TimespanTournamentEntry(tour[i], 'W')
-    
-    stat <- rbind(stat, stat2)
-    
+  # Filter by stage if provided and not 'W' or '0'
+  if(length(stage) > 0 & stage != 'W' & stage != '0') {
+    filtered_db <- filtered_db[round == stage]
   }
   
-  stat <- subset(stat, days > 5000)
+  # If stage is 'W', filter to finals ('F')
+  if(stage == 'W') {
+    filtered_db <- filtered_db[round == 'F']
+  }
   
+  # Unique tournaments won by players on this surface/stage
+  wins <- unique(filtered_db[, .(name = winner_name, tourney_name, tourney_date, age = winner_age)])
+  
+  # Unique tournaments lost by players (only if stage not 'W')
+  if(stage != 'W') {
+    losses <- unique(filtered_db[, .(name = loser_name, tourney_name, tourney_date, age = loser_age)])
+    
+    # Merge wins and losses by player, tournament, date and age to get all matches
+    results <- merge(wins, losses, by = c("name", "tourney_name", "tourney_date", "age"), all = TRUE)
+  } else {
+    results <- wins
+  }
+  
+  # Convert tournament date to Date format
+  results[, tourney_date := ymd(tourney_date)]
+  
+  # Order by player and tournament date ascending
+  setorder(results, name, tourney_date)
+  
+  # Select first and last tournament entries per player
+  first_and_last <- results[, .SD[c(1, .N)], by = name]
+  
+  # Separate first and last entries
+  first_entry <- first_and_last[, .SD[1], by = name]
+  last_entry <- first_and_last[, .SD[.N], by = name]
+  
+  # Combine first and last tournament info side by side
+  timespan <- cbind(
+    first_entry,
+    last_tournament = last_entry$tourney_name,
+    last_date = last_entry$tourney_date
+  )
+  
+  # Rename columns for clarity
+  setnames(timespan,
+           old = c("name", "tourney_name", "tourney_date", "age", "last_tournament", "last_date"),
+           new = c("Player", "1st tournament", "1st date", "age", "last tournament", "last date"))
+  
+  # Remove age column
+  timespan[, age := NULL]
+  
+  # Calculate days difference between last and first tournament entries
+  timespan[, days := as.numeric(difftime(`last date`, `1st date`, units = "days"))]
+  
+  # Order descending by days (longest timespan first)
+  setorder(timespan, -days)
+  
+  # Return the resulting table
+  return(timespan)
+}
+
+
+SameTournamentTimespan <- function() {
+  require(dplyr)
+  require(parallel)
+  require(data.table)
+  
+  
+  # Unique `tourney_id`
+  tour <- db %>%
+    mutate(id = sub("^[^\\-]*", "", tourney_id)) %>%
+    pull(id) %>%
+    unique()
+  
+  # Configure cluster
+  n_cores <- max(1, detectCores() - 1)
+  cl <- makeCluster(n_cores)
+  
+  # Expport variables
+  clusterExport(cl, c("db", "TimespanTournamentEntry"), envir = environment())
+  clusterEvalQ(cl, {
+    library(dplyr)
+    library(lubridate)
+    library(data.table)
+  })
+  
+  # Parallel execution
+  results <- tryCatch(
+    parLapply(cl, tour, function(tour_id) {
+      TimespanTournamentEntry(tour_id, 'W')
+    }),
+    error = function(e) {
+      stop("Error during parallel processing: ", e$message)
+    }
+  )
+  
+  # Close cluster
+  stopCluster(cl)
+  
+  # Combine results
+  stat <- do.call(rbind, results)
+  
+  # Order and filter
+  if (!is.null(stat) && "days" %in% names(stat)) {
+    stat <- stat[order(-stat$days), ]
+    stat <- subset(stat, days > 5000)
+  } else {
+    warning("No valid results or 'days' column not found.")
+    stat <- NULL
+  }
+  
+  return(stat)
 }

@@ -1,37 +1,35 @@
 PlayedOverall <- function() {
+  # Remove walkovers, defaults, and abandoned matches
+  db_filtered <- db[!score %in% c("W/O", "DEF", "ABN")]
   
-  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)" & !str_detect(db$score, "WEA")]
+  # Count total wins per player
+  wins <- db_filtered[, .N, by = winner_name]
   
-  ## wins
-  wins <- db[,.N, by=winner_name]
+  # Count total losses per player
+  losses <- db_filtered[, .N, by = loser_name]
   
-  ## losses
-  losses <- db[,.N, by= loser_name]
+  # Rename columns for merging
+  setnames(wins, c("winner_name", "N"), c("Player", "wins"))
+  setnames(losses, c("loser_name", "N"), c("Player", "losses"))
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "Player"
-  names(wins)[2] <- "wins"
-  names(losses)[2] <- "losses"
+  # Merge wins and losses by player name
+  stats <- merge(wins, losses, by = "Player", all = TRUE)
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("Player"), all=TRUE)
+  # Replace NA values with 0
+  stats[is.na(stats)] <- 0
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Compute total matches played
+  stats[, matches := wins + losses]
   
-  ## sum the wins and losses into a new column played
-  res <- res[, played:=wins+losses]
+  # Order by total matches played (descending)
+  setorder(stats, -matches)
   
-  ## order by decreasing total matches
-  setorder(res, -played)
+  # Select only relevant columns
+  result <- stats[, .(Player, matches)]
   
-  res <- res[, c("Player", "played")]
-  
-  names(res)[1] <- "Player"
-  names(res)[2] <- "#Ms"
-  
-  print(res)
+  return(result)
 }
+
 
 
 PlayedCategory <- function(category) {
@@ -40,7 +38,7 @@ PlayedCategory <- function(category) {
   db <- db[tourney_level == category]
   
   #drop not played matches
-  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="ABN"]
   
   ## wins
   wins <- db[,.N, by=winner_name]
@@ -77,7 +75,7 @@ PlayedSurface <- function(court) {
   db <- db[surface == court]
   
   #remove not played matches
-  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="ABN"]
   
   ## wins
   wins <- db[,.N, by=winner_name]
@@ -104,7 +102,7 @@ PlayedSurface <- function(court) {
   res <- res[, c("Player", "played")]
   
   names(res)[1] <- "Player"
-  names(res)[2] <- "#Ms"
+  names(res)[2] <- "matches"
   
   print(res)
 }
@@ -117,7 +115,7 @@ PlayedTour <- function(id) {
   
   db <- db[tourney_id == id]
   
-  db <- db[!db$score=="W/O" & !db$score=="DEF"]
+  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="ABN"]
   
   ## wins
   wins <- db[,.N, by=winner_name]

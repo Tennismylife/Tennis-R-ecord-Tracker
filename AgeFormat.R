@@ -1,58 +1,26 @@
-
-FormatwinnerAge <- function(stat) {
-  
-stat$dec <- stat$winner_age - floor(stat$winner_age)
-
-stat$dec <- stat$dec * 365.25
-
-stat$winner_age <- as.integer(stat$winner_age)
-
-stat$dec <- as.integer(stat$dec)
-
-stat$winner_age <- paste(stat$winner_age, "y", " ", stat$dec, "d", sep = "")
-
-print(stat)
-
+# Format winner age: from decimal to "Xy Yd"
+FormatWinnerAge <- function(stat) {
+  stat$winner_age <- as.numeric(stat$winner_age)
+  years <- floor(stat$winner_age)
+  days <- as.integer((stat$winner_age - years) * 365.25)
+  stat$winner_age <- paste0(years, "y ", days, "d")
+  return(stat)
 }
 
-FormatLoserAge <- function(stat){
-
-stat$dec <- stat$loser_age - floor(stat$loser_age)
-
-stat$dec <- stat$dec * 365.25
-
-stat$loser_age <- as.integer(stat$loser_age)
-
-stat$dec <- as.integer(stat$dec)
-
-stat$loser_age <- paste(stat$loser_age, "y", " ", stat$dec, "d", sep = "")
-
-stat$dec <- stat$diffage - floor(stat$diffage)
-
-stat$dec <- stat$dec * 365.25
-
-stat$diffage <- as.integer(stat$diffage)
-
-stat$dec <- as.integer(stat$dec)
-
-stat$diffage <- paste(stat$diffage, "y", " ", stat$dec, "d", sep = "")
-
-print(stat)
-  
+# Format loser age: from decimal to "Xy Yd"
+FormatLoserAge <- function(stat) {
+  stat$loser_age <- as.numeric(stat$loser_age)
+  years <- floor(stat$loser_age)
+  days <- as.integer((stat$loser_age - years) * 365.25)
+  stat$loser_age <- paste0(years, "y ", days, "d")
+  return(stat)
 }
 
+# Format general age column: from decimal to "Xy Yd"
 FormatAge <- function(stat) {
-  
-  stat$dec <- stat$age - floor(stat$age)
-  
-  stat$dec <- stat$dec * 365.25
-  
-  stat$age <- as.integer(stat$age)
-  
-  stat$dec <- as.integer(stat$dec)
-  
-  stat$age <- paste(stat$age, "y", " ", stat$dec, "d", sep = "")
-  
-  print(stat)
-
+  stat$age <- as.numeric(stat$age)
+  years <- floor(stat$age)
+  days <- as.integer((stat$age - years) * 365.25)
+  stat$age <- paste0(years, "y ", days, "d")
+  return(stat)
 }

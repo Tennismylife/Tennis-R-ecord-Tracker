@@ -1,105 +1,91 @@
-lopsidedLoss <- function() {
+library(data.table)
+library(foreach)
+library(doParallel)
+library(stringr)
+
+LopsidedLoss <- function() {
   
-  stat <- db
+  # Set up parallel backend, use one less core than available
+  cl <- makeCluster(detectCores() - 1)
+  registerDoParallel(cl)
   
-  #extract id from tourney_id
-  #stat$tourid <- sub("^[^-]*", "", stat$tourney_id)
+  # Copy dataset to work on and convert to data.table
+  stat <- as.data.table(db)
   
-  #stat <- stat[tourid == -580]
-  
-  stat <- stat[tourney_level == 'G' & tourney_name == 'Roland Garros']
-  
-  #stat <- stat[round == 'F']
-  
-  #stat <- stat[loser_name == 'Novak Djokovic']
-  
-  #stat <- stat[loser_rank == 1]
-  
+  # Filter matches involving Rafael Nadal (either winner or loser)
   stat <- stat[winner_name == 'Rafael Nadal' | loser_name == 'Rafael Nadal']
   
-  #stat <- stat[(str_count(stat$score, "-") == '5' & best_of == 5)]
+  # Exclude matches with walkovers, defaults, abandonments, or retirements
+  stat <- stat[!score %in% c("W/O", "DEF", "(ABN)") & !str_detect(score, "RET")]
   
-  stat <-stat[!stat$score == "W/O" & !stat$score == "DEF" & !stat$score == "(ABN)" & !str_detect(stat$score, "RET")]
+  # Calculate points won by winner and loser based on statistics
+  stat[, winner_points := w_1stWon + w_2ndWon + (l_svpt - l_1stWon - l_2ndWon)]
+  stat[, loser_points := l_1stWon + l_2ndWon + (w_svpt - w_1stWon - w_2ndWon)]
   
-  stat <-stat[, winner_points := w_1stWon + w_2ndWon + (l_svpt - l_1stWon - l_2ndWon)]
+  # Compute difference in points and percentage of points won by winner
+  stat[, diffpoints := winner_points - loser_points]
+  stat[, percentage := (winner_points / (winner_points + loser_points)) * 100]
   
-  stat <-stat[, loser_points := l_1stWon + l_2ndWon + (w_svpt - w_1stWon - w_2ndWon)]
+  # Extract year from tournament ID (assumes first 4 chars are year)
+  stat[, year := str_sub(tourney_id, 1, 4)]
   
-  stat$diffpoints <- stat[, winner_points - loser_points]
+  # Replace walkover score strings with a placeholder "0-0 0-0"
+  stat[, score := gsub('W/O', '0-0 0-0', score)]
   
-  #stat <- stat[winner_points > 0]
-  
-  stat <-stat[, percentage := (winner_points / (winner_points + loser_points)) * 100]
-  
-  #stat$diffpoints[is.na(stat$diffpoints)] <- 0
-  
-  #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 , 4)
-  
-  #change walkover with 0 games
-  stat$score <- gsub('W/O', '0-0 0-0', stat$score)
-  
-  #split to catch the sets
-  stat$set <- strsplit(stat$score, " ")
-  
-  library(foreach)
-  foreach(i = 1:length(stat$set)) %do%
-    {
-      print(stat$tourney_id[i])
+  # Use parallel foreach to parse scores and calculate total games won/lost
+  results <- foreach(i = 1:nrow(stat), .combine = rbind, .packages = c("stringr")) %dopar% {
+    
+    # Split the score string into sets
+    scores <- strsplit(stat$score[i], " ")
+    
+    totallost <- 0
+    totalwon <- 0
+    
+    # For each set, extract games won and lost
+    for (set in scores[[1]]) {
+      games <- strsplit(set, "-")[[1]]
       
-      score <- strsplit(stat$set[[i]], "-")
+      # Remove tiebreak notation (e.g., "7(7)" -> "7")
+      won <- as.numeric(sub("\\(.*", "", games[1]))
+      lost <- as.numeric(sub("\\(.*", "", games[2]))
       
-      totallost <- 0
-      totalwon <- 0
+      # Handle NA values (if conversion fails)
+      won <- ifelse(is.na(won), 0, won)
+      lost <- ifelse(is.na(lost), 0, lost)
       
-      #count lost games
-      foreach(j = 1:length(score)) %do%
-        {
-          #sub for tiebreaks
-          score[[j]][2] <-  sub("\\(.*", "", score[[j]][2])
-          
-          score[[j]][2][is.na(score[[j]][2])] <- 0
-          
-          totallost<-totallost+as.numeric(score[[j]][2])
-          
-          score[[j]][1] <-  sub("\\(.*", "", score[[j]][1])
-          
-          score[[j]][1][is.na(score[[j]][1])] <- 0
-          
-          totalwon<-totalwon+as.numeric(score[[j]][1])
-        }
-      
-      #sub score with lost games
-      stat$lostgames[i]<- unlist(totallost)
-      stat$wongames[i]<- unlist(totalwon)
+      totalwon <- totalwon + won
+      totallost <- totallost + lost
     }
+    
+    # Return a data frame with tournament ID and games won/lost
+    data.frame(tourney_id = stat$tourney_id[i], lostgames = totallost, wongames = totalwon)
+  }
   
-  stat$lostgames <- as.numeric(as.character(unlist(stat$lostgames)))
-  stat$wongames <- as.numeric(as.character(unlist(stat$wongames)))
+  # Convert results to data.table and remove duplicate tournament IDs
+  results <- as.data.table(results)
+  results <- results[!duplicated(tourney_id)]
+  stat <- stat[!duplicated(tourney_id)]
   
-  stat$diffgames <- stat[, wongames - lostgames]
-  stat$totalgames <- stat[, wongames + lostgames]
+  # Merge the original data with calculated games stats
+  stat <- merge(stat, results, by = "tourney_id", allow.cartesian = TRUE)
   
-  stat <- 
-    stat[,c("tourney_name", 
-            "year", 
-            "round", 
-            "winner_name", 
-            "loser_name", 
-            "score", 
-            "wongames", 
-            "lostgames",
-            "diffgames",
-            "totalgames",
-            "winner_points",
-            "loser_points",
-            "diffpoints"
-    )]
+  # Calculate difference and total number of games
+  stat[, diffgames := wongames - lostgames]
+  stat[, totalgames := wongames + lostgames]
   
-  ## order by decreasing
-  stat <- setorder(stat, lostgames, na.last = FALSE)
+  # Sort by descending difference in games and then by difference in points
+  stat <- stat[order(-diffgames, -diffpoints)]
   
-  stat <- stat[with(stat, order(-diffgames, -diffpoints)), ]
+  # Select relevant columns for output
+  final_stat <- stat[, .(
+    tourney_name, year, round, winner_name, loser_name, score,
+    wongames, lostgames, diffgames, totalgames,
+    winner_points, loser_points, diffpoints
+  )]
   
-  #stat <- stat[1:200, ]
+  # Stop parallel cluster
+  stopCluster(cl)
+  
+  # Return final table with match stats
+  return(final_stat)
 }

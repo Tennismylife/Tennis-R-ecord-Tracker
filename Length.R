@@ -1,37 +1,30 @@
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
 MostLengthMatches <- function() {
   
+  # Remove team events from the dataset (assuming this function exists)
   db <- removeTeamEvents(db)
   
   stat <- db
   
-  stat <- stat[tourney_level == 'M']
+  # Keep only Grand Slam tournaments (assuming 'G' stands for Grand Slam)
+  stat <- stat[tourney_level == 'G']
   
-  #player <- 'Novak Djokovic'
+  # Keep only final rounds
+  stat <- stat[round == 'F']
   
-  #stat <- db[(winner_name == player | loser_name == player)]
-  
-  #stat$tourid <- sub("^[^-]*", "", stat$tourney_id)
-  
-  #extract id from tourney_id
-  #stat <- stat[tourid == -580]
-  
+  # Replace NA values in 'minutes' column with 0
   stat[is.na(stat$minutes)] <- 0
   
-  stat <- subset(stat, minutes > 180)
+  # Keep only matches longer than 1 minute (exclude very short or missing durations)
+  stat <- subset(stat, minutes > 1)
   
-  # #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 , 4)
+  # Extract year from the first 4 characters of 'tourney_id' (assumes format starts with year)
+  stat$year <- stringr::str_sub(stat$tourney_id, 1, 4)
   
-  ## order by decreasing
+  # Order data by decreasing match length (minutes)
   stat <- setorder(stat, -minutes, na.last = FALSE)
   
-  stat <-
-    stat[, c("tourney_name",
-             "year",
-             "round",
-             "winner_name",
-             "loser_name",
-             "score",
-             "minutes")]
+  # Select relevant columns for the output
+  stat <- stat[, c("tourney_name", "year", "round", "winner_name", "loser_name", "score", "minutes")]
+  
+  return(stat)
 }

@@ -2,63 +2,88 @@ library(NLP)
 
 
 CountRoundSeason <- function() {
+  # Remove team events
+  db <- removeTeamEvents(db)
   
-  #db <- removeTeamEvents(db)
+  # ===============================
+  #          FILTER SECTION
+  # ===============================
   
-  ## drop walkover matches (not countable)
-  #db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  # Filter by tournament level (e.g. Grand Slam)
+  db <- db[tourney_level == "G"]
   
-  ##SelectRound
-  #db <- db[tourney_level == 'M']
+  # Filter by round (e.g. Semifinals)
+  db <- db[round == "SF"]
   
-  #db <- db[winner_ioc =='ITA']
+  # Optional: filter by surface (e.g. Clay)
+  # db <- db[surface == "Clay"]
   
-  #db <- db[winner_age < 21.547]
+  # Optional: filter by winner nationality (e.g. Italy)
+  # db <- db[winner_ioc == "ITA"]
   
-  db <- db[round == 'F']
+  # Optional: filter by winner age (e.g. under 21.547)
+  # db <- db[winner_age < 21.547]
   
-  wins <- db[,c('winner_name','tourney_id')]
+  # ===============================
+  #         PROCESSING
+  # ===============================
   
-  #extract year from tourney_date
-  wins$tourney_id <- stringr::str_sub(wins$tourney_id, 0 ,4)
+  # Extract year from tourney_id
+  db[, year := substr(tourney_id, 1, 4)]
   
-  names(wins)[2] <- "year"
+  # Select relevant columns
+  wins <- db[, .(player = winner_name, year)]
   
-  season <- wins[, .N, by = list(wins$winner_name, wins$year)]
+  # Count number of semifinal wins per player per year
+  season_counts <- wins[, .N, by = .(player, year)]
   
-  names(season)[1] <- "player"
-  names(season)[2] <- "year"
+  # Group years into a list per player
+  result <- season_counts[, .(seasons = list(year)), by = player]
   
-  #select where N > 4
-  season <- season[which(N >  0)]
+  # Count number of distinct seasons
+  result[, n := lengths(seasons)]
   
-  ## order by decreasing
-  season <- season[order(-N)]
+  # Format seasons as comma-separated string without quotes
+  result[, seasons := sapply(seasons, function(x) paste(x, collapse = ", "))]
   
-  season <- season[order(year)]
+  # Order by number of seasons (descending)
+  setorder(result, -n)
   
-  out <- aggregate(season$year ~ season$player, season, c)
+  # Print the result
+  print(result)
+}
+
+
+
+
+
+CountEntrySeason <- function() {
+  # Remove team events
+  db <- removeTeamEvents(db)
   
-  names(out)[1] <- "player"
-  names(out)[2] <- "seasons"
+  # Filter out walkovers and abandoned matches
+  db <- db[!score %in% c("W/O", "DEF", "(ABN)")]
   
-  nn <- sapply(strsplit(as.character(out$seasons), ", "), length)
+  # Combine winner and loser data with tourney_id
+  entries <- rbind(
+    db[, .(player = winner_name, tourney_id)],
+    db[, .(player = loser_name, tourney_id)]
+  )
   
-  mm <- as.data.frame(cbind(out, n=nn))
+  # Extract year (first 4 characters of tourney_id)
+  entries[, year := substr(tourney_id, 1, 4)]
   
-  mm <- mm[order(mm$n, decreasing=TRUE), ]
+  # Count player appearances per year
+  season_counts <- entries[, .N, by = .(player, year)]
   
-  #mm$seasons <- str_replace_all(mm$seasons, "c", "")
+  # Aggregate seasons per player
+  out <- season_counts[, .(
+    seasons = paste(sort(unique(as.integer(year))), collapse = ", "),
+    n = uniqueN(year)
+  ), by = player]
   
-  mm$seasons <- gsub("c(", "", mm$seasons, fixed = TRUE)
+  # Order by number of seasons descending
+  out <- out[order(-n)]
   
-  mm$seasons <- gsub("\"", "", mm$seasons, fixed = TRUE)
-  
-  mm$seasons <- gsub(")", "", mm$seasons, fixed = TRUE)
-  
-  #select 1st 20
-  #mm <- mm[1:100,]
-  
-  print(mm)
-  
+  return(out)
 }

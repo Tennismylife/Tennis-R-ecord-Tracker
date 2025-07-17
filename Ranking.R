@@ -1,55 +1,40 @@
 LowestRankingRound <- function(stage) {
   
-  db <- removeTeamEvents(db)
+  # Remove team competitions (e.g., Davis Cup)
+  db_filtered <- removeTeamEvents(db)
   
-  dbm <- db
-  
-  #dbm <- dbm[tourney_level =='G']
-  
-  if(stage != 'W' & stage!='0')
-    dbm <- dbm[round == stage]
-  
-  if(stage == 'W' & stage!='0')
-    dbm <- dbm[round == 'F']
-  
-  dbm1 <- dbm[round == 'F']
-  dbm1 <- unique(dbm1[,c('tourney_name', 'tourney_id', 'winner_ioc', 'winner_name', 'winner_rank')])
-  
-  if(stage != 'W')
-    dbm2 <- unique(dbm[,c('tourney_name', 'tourney_id', 'loser_ioc', 'loser_name', 'loser_rank')])
-  
-  ## wins
-  wins <- dbm1
-  
-  ## losses
-  if(stage != 'W')
-    losses <- dbm2
-  
-  ## common name to merge with
-  names(wins)[3] <- "flag"
-  names(wins)[4] <- "name"
-  names(wins)[5]  <- "rank"
-  
-  if(stage != 'W'){
-    names(losses)[3] <- "flag"
-    names(losses)[4] <- "name"
-    names(losses)[5] <- "rank"
+  # Filter by round, unless '0' (which means all rounds)
+  if (stage != '0') {
+    db_filtered <- db_filtered[
+      if (stage == 'W') round == 'F' else round == stage
+    ]
   }
   
-  ## merge the tables by "name"
-  if(stage != 'W')
-    res <- rbind( wins, losses, fill=TRUE)
-  else 
-    res <- wins
+  # Get unique winners from finals
+  winners <- unique(
+    db_filtered[round == 'F', .(tourney_name, tourney_id, flag = winner_ioc,
+                                name = winner_name, rank = winner_rank)]
+  )
   
-  res$tourney_id <- substr(res$tourney_id, 0, 4)
+  # If stage is not just winners, also collect unique losers
+  if (stage != 'W') {
+    losers <- unique(
+      db_filtered[, .(tourney_name, tourney_id, flag = loser_ioc,
+                      name = loser_name, rank = loser_rank)]
+    )
+    # Combine winners and losers
+    res <- rbind(winners, losers, fill = TRUE)
+  } else {
+    res <- winners
+  }
   
-  names(res)[2] <- "year"
-
-  ## order by decreasing rank
-  res <- res[order(-rank)] 
-
-  res <- res[1:100,]
+  # Extract year from tourney_id
+  res[, year := substr(tourney_id, 1, 4)]
+  res[, tourney_id := NULL]  # drop original ID
   
-  print(res)
+  # Order by descending rank (lowest ranked = highest number)
+  res <- res[order(-rank)]
+  
+  # Show top 100 entries
+  head(res, 100)
 }

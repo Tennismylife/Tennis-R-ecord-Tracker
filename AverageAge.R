@@ -1,165 +1,148 @@
-require(ggplot2)
-
 AverageAgeTour <- function(id, stage) {
-  
-  ## only select matches of a tournament
-  db$tid <- sub("^[^-]*", "", db$tourney_id)
-  
-  dbm <- db[tid == id]
-  
-  if(stage != 'W' & stage!='0')
-    dbm <- dbm[round == stage]
-  else if(stage == 'W')
-    dbm <- dbm[round == 'F']
-  
-  #tournaments won
-  wins <- unique(dbm[,c('winner_id','tourney_name','tourney_id', 'winner_age')])
-  
-  #tournaments lost
-  if(stage != 'W')
-  losses <- unique(dbm[,c('loser_id','tourney_name','tourney_id', 'loser_age')])
-  
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[4] <- "age"
-
-  if(stage != 'W'){
-    names(losses)[1] <- "name"
-    names(losses)[4] <- "age"
+  # Check if data.table package is installed, stop if not
+  if (!requireNamespace("data.table", quietly = TRUE)) {
+    stop("data.table package is required.")
   }
-
-  ## merge the tables by "name"
-  if(stage != 'W')
-   res <- merge(wins, losses, by = c("name", "tourney_name", "tourney_id", "age"), all=TRUE)
-  else
-    res <- wins
-  
-  #calculate average by edition
   library(data.table)
-  average <- setDT(res)[ , .(mean_age = mean(age)), by = tourney_id]
   
-  #extract year from tourney_date
-  average$tourney_id <- stringr::str_sub(average$tourney_id, 0 ,4)
-  average$mean_age <- stringr::str_sub(average$mean_age, 0 ,5)
+  # Create a new column 'tid' by removing the year and the first hyphen from 'tourney_id'
+  # For example, '2019-US-Open' becomes 'US-Open'
+  db$tid <- sub("^[^-]*-", "", db$tourney_id)
   
-  average$mean_age <- gsub("\\.", ",", average$mean_age)
+  # Filter rows where 'tid' matches the given 'id'
+  filtered_db <- db[tid == id]
   
-  ## order by decreasing
-  setorder(average, tourney_id, na.last=FALSE)
+  # Further filter based on 'stage':
+  # If stage is not 'W' (winner) or '0', filter by the specific round equal to 'stage'
+  # If stage is 'W', select only finals (round == 'F')
+  if (stage != 'W' && stage != '0') {
+    filtered_db <- filtered_db[round == stage]
+  } else if (stage == 'W') {
+    filtered_db <- filtered_db[round == 'F']
+  }
   
-  print(average)
+  # Calculate the average age combining winner and loser ages for each tournament edition
+  # NA values are ignored in the mean calculation
+  average <- filtered_db[, .(
+    mean_age = mean(c(winner_age, loser_age), na.rm = TRUE)
+  ), by = tourney_id]
+  
+  # Extract the year from 'tourney_id' assuming the first 4 characters represent the year
+  average[, year := substr(tourney_id, 1, 4)]
+  
+  # Order the results by year in descending order
+  setorder(average, -year)
+  
+  # Return the resulting table with average ages per tournament edition
+  return(average)
 }
+
 
 
 AverageAgeH2HRound <- function() {
   
-  db <- db[round == 'F']
-  db <- db[tourney_level == 'G']
+  # Filter for final round and Grand Slam level
+  db_filtered <- db[round == 'F' & tourney_level == 'G']
   
-  res <- db[, averageage:=(winner_age+loser_age)/2]
+  # Copy to avoid modifying original data.table
+  res <- copy(db_filtered)
   
-  #extract year from tourney_date
-  res$tourney_id <- stringr::str_sub(res$tourney_id, 0 ,4)
+  # Calculate average age
+  res[, averageage := (winner_age + loser_age) / 2]
   
+  # Extract year from tourney_id (first 4 characters)
+  res[, tourney_id := stringr::str_sub(tourney_id, 1, 4)]
   
-  ## order by decreasing total matches
-  setorder(res, -averageage)
+  # Order by average age ascending (or descending if you prefer)
+  setorder(res, averageage) 
   
-  res <- res[,c("tourney_name", "tourney_id", "round", "winner_ioc", "winner_name", "winner_age", "loser_ioc", "loser_name", "loser_age", "averageage")]
+  # Select relevant columns
+  res <- res[, .(tourney_name, tourney_id, round, winner_ioc, winner_name, winner_age,
+                 loser_ioc, loser_name, loser_age, averageage)]
   
+  return(res)
 }
+
+AverageAgeinTournamentOfASeason <- function() {
+  # Filter the dataset for finals ('F' round) in tournaments from 2024
+  finals_2024 <- db[round == 'F' & grepl("1984-", tourney_id)]
   
+  # Extract winner ages and label column as 'age'
+  wins <- finals_2024[, .(tourney_id, age = winner_age)]
   
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-averageAgeinTournamentOfASeason <- function() {
-  dbm <- db
+  # Extract loser ages and label column as 'age'
+  losses <- finals_2024[, .(tourney_id, age = loser_age)]
   
-  dbm <- dbm[round == 'F' & grepl("2021-", dbm$tourney_id)]
-  
-  wins <- dbm[, c('tourney_id', 'winner_age')]
-  
-  losses <- dbm[, c('tourney_id', 'loser_age')]
-  
-  names(wins)[2] <- "age"
-  names(losses)[2] <- "age"
-  
+  # Combine winners and losers into one data table
   res <- rbind(wins, losses)
   
-  #setorder(res, -tourney_id)
+  # Remove rows where age is NA to avoid bias in average calculation
+  res <- res[!is.na(age)]
   
-  res[is.na(res)] <- 0
+  # Get unique tournament IDs and their official names
+  officialName <- unique(finals_2024[, .(tourney_id, tourney_name)])
   
-  officialName <- unique(dbm[, c('tourney_id', 'tourney_name')])
+  # Join the ages with the official tournament names
+  res <- merge(res, officialName, by = "tourney_id", all.x = TRUE)
   
-  res <- left_join(res, officialName, by = "tourney_id")
+  # Calculate the average age per tournament
+  average <- res[, .(average_age = mean(age)), by = .(tourney_id, tourney_name)]
   
-  print(res)
+  # Order tournaments by descending average age
+  setorder(average, -average_age)
   
-  average <-
-    aggregate(
-      res$age,
-      by = list(
-        tourney_id = res$tourney_id,
-        tourney_name = res$tourney_name
-      ),
-      FUN = mean,
-      na.rm = TRUE
-    )
+  # Format average age to two decimals and replace decimal point with comma
+  average[, average_age := sub("\\.", ",", format(round(average_age, 2), nsmall=2))]
   
-  average$x <- gsub("\\.", ",", average$x)
-  
-  setorder(average, -x)
-  
+  # Print the resulting table
   print(average)
+  
+  # Return the table with average ages
+  return(average)
 }
 
 
+
+
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-AverageAgeSeedingInATournament <- function(){
+AverageAgeSeedingInATournament <- function() {
+  # Filter only 'G' level tournaments
+  stat <- db[tourney_level == 'G']
   
-  stat <- db[tourney_level == 'M']
+  # Convert seeds to integer, suppress warnings if any NAs introduced
+  stat[, winner_seed := as.integer(winner_seed)]
+  stat[, loser_seed := as.integer(loser_seed)]
   
-  stat$winner_seed <- as.integer(stat$winner_seed)
-  stat$loser_seed <- as.integer(stat$loser_seed)
+  # Extract top 4 seeded winners and losers with their age and tournament ID
+  winners <- unique(stat[winner_seed < 5, .(age = winner_age, seed = winner_seed, tourney_id)])
+  losers  <- unique(stat[loser_seed < 5, .(age = loser_age,  seed = loser_seed,  tourney_id)])
   
-  winners <- stat[winner_seed < 5]
+  # Combine winners and losers into one table
+  combined <- rbind(winners, losers)
   
-  winners <- unique(winners[, c('winner_age', 'winner_seed', 'tourney_id')])
+  # Remove duplicates and order by tournament
+  combined <- unique(combined)
+  setorder(combined, tourney_id)
   
-  losers <- stat[loser_seed < 5]
+  # Calculate average age of top seeds per tournament
+  avg_age <- combined[, .(age = mean(age, na.rm = TRUE)), by = tourney_id]
   
-  losers <- unique(losers[, c('loser_age', 'loser_seed', 'tourney_id')])
+  # Get tournament names from final rounds of 'G' level tournaments
+  final_rounds <- db[round == 'F' & tourney_level == 'G', .(tourney_id, tourney_name)]
+  official_names <- unique(final_rounds)
   
-  names(winners)[1] <- names(losers)[1] <- "age"
-  names(winners)[2] <- names(losers)[2] <- "seed"
+  # Join average age with tournament names
+  result <- merge(official_names, avg_age, by = "tourney_id")
   
+  # Extract year from tournament ID (first 4 characters)
+  result[, year := substr(tourney_id, 1, 4)]
   
-  stat <- rbind(winners, losers, by = c("tourney_id"), fill = TRUE)
+  # FormatAge is assumed to format 'age' column (rounding, etc.)
+  result <- FormatAge(result)
   
+  # Select and order relevant columns by ascending average age
+  result <- result[, .(tourney_name, year, age)]
+  setorder(result, age)
   
-  ## order by decreasing
-  setorder(stat, tourney_id, na.last=FALSE)
-  
-  stat <- unique(stat[,c('age', 'seed', 'tourney_id')])
-  
-  
-  stat <- aggregate( age ~ tourney_id, stat, mean )
-  
-  res <- db[round == 'F' & tourney_level == 'M']
-  officialName <-
-    unique(res[, c('tourney_id', 'tourney_name')])
-  
-  stat <- join(officialName, stat, by = "tourney_id")
-  
-  #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-  
-  stat <- FormatAge(stat)
-  
-  stat <- stat[,c("tourney_name", "year", "age")]
-  
-  ## order by decreasing
-  #setorder(stat, age, na.last=FALSE)
-  
-  print(stat)
+  print(result)
 }

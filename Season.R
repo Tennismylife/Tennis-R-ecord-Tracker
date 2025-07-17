@@ -5,146 +5,150 @@ source("Entries.R")
 
 EntriesSeason <- function() {
   
+  # Remove team events from the dataset
   db <- removeTeamEvents(db)
   
-  #tournaments won
-  wins <- unique(db[,c('winner_name','tourney_name','tourney_id')])
+  # Get unique tournament wins per player, including tournament name and ID
+  wins <- unique(db[, c('winner_name', 'tourney_name', 'tourney_id')])
   wins <- dplyr::distinct(wins)
   
-  #tournaments lost
-  losses <- unique(db[,c('loser_name','tourney_name','tourney_id')])
+  # Get unique tournament losses per player, including tournament name and ID
+  losses <- unique(db[, c('loser_name', 'tourney_name', 'tourney_id')])
   losses <- dplyr::distinct(losses)
   
-  ## common name to merge with
+  # Rename player columns to 'name' for merging
   names(wins)[1] <- names(losses)[1] <- "name"
+  
+  # Rename tournament name columns for clarity before merging
   names(wins)[2] <- "wins"
   names(losses)[2] <- "losses"
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, all = TRUE, allow.cartesian=TRUE)
+  # Merge wins and losses data by player name; full outer join to keep all players
+  # 'allow.cartesian=TRUE' is a data.table option, but merge here is base R; this arg will be ignored
+  res <- merge(wins, losses, all = TRUE)
+  
+  # Remove duplicates from merged data
   res <- dplyr::distinct(res)
   
-  #extract year from tourney_date
-  res$tourney_id <- stringr::str_sub(res$tourney_id, 0 ,4)
+  # Extract year from tournament ID by taking the first 4 characters (assuming ID starts with year)
+  res$tourney_id <- stringr::str_sub(res$tourney_id, 1, 4)  # changed 0 to 1 for proper substring
   
+  # Rename columns to player name and year for aggregation
   names(res)[1] <- "name"
   names(res)[2] <- "year"
   
-  #In a season
-  #res <- res [year == '2019']
+  # Count the number of entries per player per year (season)
+  season <- res[, .N, by = list(name, year)]
   
-  season <- res[, .N, by = list(res$name, res$year)]
+  # Rename columns for output clarity
+  names(season) <- c("Player", "Season", "Entries")
   
-  names(season)[1] <- "Player"
-  names(season)[2] <- "Season"
-  names(season)[3] <- "Entries"
-  
+  # Order the result by descending number of entries
   entry <- season[order(-Entries)]
   
+  # Print the final table showing player entries by season
   print(entry)
-  
 }
+
 
 SameSeasonWins <- function() {
   
-  ## drop walkover matches (not countable)
-  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  # Filter out matches that are walkovers, defaults, or abandoned (not countable wins)
+  db <- db[!db$score %in% c("W/O", "DEF", "(ABN)")]
   
-  #tournaments won
-  wins <- db[,c('loser_name','tourney_id')]
+  # Extract the year from the tournament ID by taking the first 4 characters
+  # Note: stringr::str_sub indexing starts at 1, not 0
+  db$year <- stringr::str_sub(db$tourney_id, 1, 4)
   
-  #extract year from tourney_date
-  wins$tourney_id <- stringr::str_sub(wins$tourney_id, 0 ,4)
-
+  # Select winner name and tournament year
+  wins <- db[, c('winner_name', 'tourney_id')]
   
-  names(wins)[1] <- "name"
-  names(wins)[2] <- "year"
+  # Extract the year from tourney_id in the wins data as well
+  wins$tourney_id <- stringr::str_sub(wins$tourney_id, 1, 4)
   
-  sameseason <- wins[, .N, by = list(wins$name, wins$year)]
+  # Rename columns for clarity
+  names(wins) <- c("name", "year")
   
-  names(sameseason)[1] <- "Player"
-  names(sameseason)[2] <- "Season"
+  # Count the number of wins per player per season
+  sameseason <- wins[, .N, by = .(name, year)]
   
-  entry <- sameseason[order(-N)] 
+  # Rename columns for output
+  names(sameseason) <- c("Player", "Season", "Wins")
   
+  # Order by descending number of wins
+  entry <- sameseason[order(-Wins)]
+  
+  # Print the results
   print(entry)
-  
 }
-
 
 
 SameSeasonRound <- function(stage) {
   
+  # Remove team events
   db <- removeTeamEvents(db)
   
-  db <- db[!db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  # Extract year from tourney_id (first 4 chars)
+  db$year <- stringr::str_sub(db$tourney_id, 1, 4)
   
-  ## get round matches
-  if(stage !='W' & stage !='0')
+  # Filter matches based on the stage
+  if (stage == 'W') {
+    # For winner stage, select finals excluding withdrawn matches
+    db <- db[round == 'F' & !str_detect(score, "WEA")]
+    
+    # Use only winners
+    res <- db[, .(name = winner_name, year)]
+  } else if (stage != '0') {
+    # For other rounds (except '0'), select matches in that round
     db <- db[round == stage]
-  
-  if(stage =='W')
-    db <- db[round == 'F']
-  
-  wins <- db[,c('winner_name','tourney_id', 'tourney_name', 'round')]
-  
-  if(stage !='W')
-    losses <- db[,c('loser_name','tourney_id', 'tourney_name', 'round')]
-  
-  names(wins)[1] <- "name"
-  
-  if(stage !='W')
-    names(losses)[1] <- "name"
-  
-  ## merge the tables by "name"
-  if(stage !='W')
-    res <- rbind(wins, losses, by = c("name"), fill=TRUE)
-  
-  if(stage =='W')
-    res <- wins
-  
-  
-  #extract year from tourney_date
-  res$tourney_id <- stringr::str_sub(res$tourney_id, 0 ,4)
-  
-  same <- res[, .N, by = list(res$name, res$tourney_id)]
-  
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Season"
-  names(same)[3] <- "N"
-  
-  season <- same[order(-N)]
-  
-  print(season)
-}
-
-
-SeasonPercentage <- function(){
-  
-  # #extract year from tourney_date
-  db$year <- stringr::str_sub(db$tourney_id, 0 ,4)
-  
-  year <- unique(dplyr::pull(db, year))
-  
-  stat <-  NULL
-  
-  print(stat)
-  
-  for (i in 1:(length(year))) {
     
-    print(year[i])
-    
-    stat2 <-  PercentageYearByYear(year[i], db)
-    
-    stat2 <- add_column(stat2, year[i], .after = "name")
-    
-    stat <- rbind(stat, stat2, fill = TRUE)
-    
-
+    # Combine winners and losers from that round
+    winners <- db[, .(name = winner_name, year)]
+    losers  <- db[, .(name = loser_name, year)]
+    res <- rbind(winners, losers)
+  } else {
+    # If stage is '0', use all matches (or handle differently if needed)
+    res <- db[, .(name = winner_name, year)]
   }
   
-  ## order by decreasing total matches
-  setorder(stat, -percentage)
-
-  stat
+  # Count occurrences of players per season
+  summary <- res[, .N, by = .(name, year)]
+  
+  # Keep only players with more than 1 occurrence
+  summary <- summary[N > 1]
+  
+  # Order descending by count
+  setorder(summary, -N)
+  
+  # Rename columns
+  setnames(summary, c("name", "year", "N"), c("Player", "Season", "Count"))
+  
+  print(summary)
 }
+
+
+
+SeasonPercentage <- function() {
+  # Extract year (first 4 chars) from tourney_id
+  db$year <- stringr::str_sub(db$tourney_id, 1, 4)
+  
+  # Initialize empty list to collect results
+  stats_list <- list()
+  
+  # Loop through each unique year and calculate percentages
+  for (yr in unique(db$year)) {
+    print(yr)
+    stat <- PercentageInASeason(yr, db)
+    stat <- add_column(stat, year = yr, .after = "name")
+    stats_list[[yr]] <- stat
+  }
+  
+  # Combine all yearly stats into one data.table
+  result <- data.table::rbindlist(stats_list, fill = TRUE)
+  
+  # Order by descending percentage
+  data.table::setorder(result, -percentage)
+  
+  return(result)
+}
+

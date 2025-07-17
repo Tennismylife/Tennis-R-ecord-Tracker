@@ -2,392 +2,323 @@ library(stringr)
 
 SameTournamentRound <- function(stage) {
   
+  library(data.table)
+  
+  # Remove team events and keep only Grand Slam tournaments
   db <- removeTeamEvents(db)
+  db <- db[tourney_level == 'G']
   
-  ## get round matches
-  if(stage !='W' & stage !='0')
+  # Filter matches by specific round (if not 'W' or '0')
+  if (stage != 'W' & stage != '0') {
     db <- db[round == stage]
-  
-  if(stage =='W')
-    db <- db[round == 'F']
-  
-  wins <- db[,c('winner_name','tourney_id', 'tourney_name')]
-  
-  if(stage !='W'){
-  losses <- db[,c('loser_name','tourney_id', 'tourney_name')]
-  losses$tourney_id <- sub("^[^-]*", "", losses$tourney_id)
   }
   
-  #extract id from tourney_id
-  wins$tourney_id <- sub("^[^-]*", "", wins$tourney_id)
+  # If stage is 'W', keep only final round (to get the winners)
+  if (stage == 'W') {
+    db <- db[round == 'F']
+  }
   
-  names(wins)[1] <- "name"
+  # Create table of winners
+  wins <- db[, .(name = winner_name, tourney_id, tourney_name)]
+  wins[, tourney_id := sub("^[^-]*-", "", tourney_id)]
   
-  if(stage !='W')
-  names(losses)[1] <- "name"
+  # If not only winners, also include losers
+  if (stage != 'W') {
+    losses <- db[, .(name = loser_name, tourney_id, tourney_name)]
+    losses[, tourney_id := sub("^[^-]*-", "", tourney_id)]
+    res <- rbindlist(list(wins, losses), use.names = TRUE, fill = TRUE)
+  } else {
+    res <- wins
+  }
   
-  ## merge the tables by "name"
-  if(stage !='W')
-  res <- rbind(wins, losses, by = c("name"), fill=TRUE)
+  # Count player appearances by tournament
+  appearances <- res[, .N, by = .(Player = name, tourney_id, tourney_name)]
   
-  if(stage =='W')
-  res <- wins
+  # Remove duplicates (if any), sort by count descending
+  appearances <- unique(appearances, by = c("Player", "tourney_id"))
+  appearances <- appearances[order(-N)]
   
-  #in the same tournament
-  list <- res[, .N, by = list(res$name, res$tourney_id)]
+  # Keep only tourney_name, Player, and count
+  appearances <- appearances[, .(Player, tourney_name, N)]
   
-  #Retrieve the official tournament name
-  names(list)[1] <- "Player"
-  names(list)[2] <- "tourney_id"
+  # Limit to top 30
+  appearances <- head(appearances, 30)
   
-  #list <- list[Player == player]
-
-  
-  officialName <- unique(db[,c('tourney_id', 'tourney_name')])
-  officialName$tourney_id <- sub("^[^-]*", "", officialName$tourney_id)
-
-  same <- left_join(officialName, list, by="tourney_id")
-  same <- unique(same)
-
-  same <- same[!duplicated(same[,c('tourney_id', 'Player')]),]
-  
-  same <- same[,c('Player','tourney_name', 'N')]
-  
-  ## order by decreasing number
-  same <- same[order(-same$N),]
-  
-  print(same)
-  
+  return(appearances)
 }
+
+
 
 SameTournamentEntries <- function() {
   
+  library(data.table)
+  
+  # Remove team events
   db <- removeTeamEvents(db)
   
-  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  # Remove walkovers, defaults, and abandonments
+  db <- db[!score %in% c("W/O", "DEF", "(ABN)")]
   
-  #tournaments won
-  wins <- unique(db[,c('winner_name','tourney_name','tourney_date')])
-  wins <- dplyr::distinct(wins)
+  # Get winner and loser entries
+  wins <- unique(db[, .(name = winner_name, tournament = tourney_name, date = tourney_date)])
+  losses <- unique(db[, .(name = loser_name, tournament = tourney_name, date = tourney_date)])
   
-  #tournaments lost
-  losses <- unique(db[,c('loser_name','tourney_name','tourney_date')])
-  losses <- dplyr::distinct(losses)
+  # Combine all entries (each row = one player in one tournament edition)
+  entries <- rbindlist(list(wins, losses), use.names = TRUE)
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- names(losses)[2] <- "tournament"
-  names(wins)[3] <- names(losses)[3] <- "date"
+  # Remove duplicate player-tournament-date entries
+  entries <- unique(entries)
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, all = TRUE, allow.cartesian=TRUE)
-  #res <- dplyr::distinct(res)
+  # Count how many times each player has appeared in the same tournament
+  appearances <- entries[, .N, by = .(Player = name, Tournament = tournament)]
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Order by most frequent entries
+  appearances <- appearances[order(-N)]
   
-  same <- res[, .N, by = list(res$name, res$tournament)]
+  # Limit to top 70
+  appearances <- head(appearances, 70)
   
-  ## order by decreasing age
-  same <- same[order(-N)] 
-  
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Tournament"
-  names(same)[3] <- "N"
-  
-  print(same)
-  
+  return(appearances)
 }
+
 
 
 SameSurfaceEntries <- function() {
   
+  library(data.table)
+  
+  # Remove team events
   db <- removeTeamEvents(db)
   
-  db <- db[!db$score=="W/O" & !db$score=="DEF" & !db$score=="(ABN)"]
+  # Exclude walkovers, defaults, and abandoned matches
+  db <- db[!score %in% c("W/O", "DEF", "(ABN)")]
   
-  #tournaments won
-  wins <- unique(db[,c('winner_name','tourney_name','tourney_date', 'surface')])
-  wins <- dplyr::distinct(wins)
+  # Create winner and loser entry tables
+  wins <- unique(db[, .(name = winner_name, tournament = tourney_name, date = tourney_date, surface)])
+  losses <- unique(db[, .(name = loser_name, tournament = tourney_name, date = tourney_date, surface)])
   
-  #tournaments lost
-  losses <- unique(db[,c('loser_name','tourney_name','tourney_date', 'surface')])
-  losses <- dplyr::distinct(losses)
+  # Combine all entries (each row = player entry into a tournament edition)
+  entries <- rbindlist(list(wins, losses), use.names = TRUE)
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- names(losses)[2] <- "tournament"
-  names(wins)[3] <- names(losses)[3] <- "date"
+  # Remove duplicates (same player in same tournament edition)
+  entries <- unique(entries)
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, all = TRUE, allow.cartesian=TRUE)
-  #res <- dplyr::distinct(res)
+  # Count appearances by surface
+  appearances <- entries[, .N, by = .(Player = name, Surface = surface)]
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Sort by highest number of entries
+  appearances <- appearances[order(-N)]
   
-  same <- res[, .N, by = list(res$name, res$surface)]
+  # Keep top 20
+  appearances <- head(appearances, 20)
   
-  ## order by decreasing age
-  same <- same[order(-N)] 
-  
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Tournament"
-  names(same)[3] <- "N"
-  
-  print(same)
-  
+  return(appearances)
 }
+
 
 SameSurfaceRound <- function(stage) {
+  
+  library(data.table)
+  library(stringr)
+  
+  # Remove team events and unwanted score types
   db <- removeTeamEvents(db)
+  db <- db[!score %in% c("ABN", "(ABN)") & !str_detect(score, "\\(WEA\\)")]
   
-  dbm <- db
-  
-  dbm <- dbm[!dbm$score=="ABN" & !dbm$score=="(ABN)" & !str_detect(dbm$score, "(WEA)")]
-  
-  ## get round matches
-  if(stage !='W' & stage !='0')
-    dbm <- dbm[round == stage]
-  
-  if(stage =='W')
-    dbm <- dbm[round == 'F']
-  
-  wins <- dbm[,c('winner_name','tourney_id', 'tourney_name', 'surface')]
-  
-  if(stage !='W'){
-    losses <- dbm[,c('loser_name','tourney_id', 'tourney_name', 'surface')]
-    losses$tourney_id <- sub("^[^-]*", "", losses$tourney_id)
+  # Filter matches by round
+  if (stage != 'W' & stage != '0') {
+    db <- db[round == stage]
   }
-  #extract id from tourney_id
-  wins$tourney_id <- sub("^[^-]*", "", wins$tourney_id)
-
+  if (stage == 'W') {
+    db <- db[round == 'F']
+  }
   
-  names(wins)[1] <- "name"
+  # Get winner entries
+  wins <- db[, .(name = winner_name, tourney_id, surface)]
   
-  if(stage !='W')
-    names(losses)[1] <- "name"
+  # Get loser entries only if not 'W' stage
+  if (stage != 'W') {
+    losses <- db[, .(name = loser_name, tourney_id, surface)]
+  }
   
-  ## merge the tables by "name"
-  if(stage !='W')
-    res <- rbind(wins, losses, by = c("name"), fill=TRUE)
-  
-  if(stage =='W')
+  # Clean tourney_id to remove prefix
+  wins[, tourney_id := sub("^[^-]*-", "", tourney_id)]
+  if (stage != 'W') {
+    losses[, tourney_id := sub("^[^-]*-", "", tourney_id)]
+    res <- rbindlist(list(wins, losses), use.names = TRUE)
+  } else {
     res <- wins
+  }
   
-  #in the same surface
-  same <- res[, .N, by = list(res$name, res$surface)]
+  # Count appearances per surface
+  surface_counts <- res[, .N, by = .(Player = name, Surface = surface)]
   
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Surface"
+  # Order and limit to top 20
+  surface_counts <- surface_counts[order(-N)]
+  surface_counts <- head(surface_counts, 20)
   
-  same <- same[,c('Player','Surface', 'N')]
-  
-  ## order by decreasing number
-  same <- same[order(-same$N),]
-  
-  print(same)
-  
+  return(surface_counts)
 }
+
 
 
 SameTournamentPlayed <- function() {
   
-  db <- removeTeamEvents(db)
+  library(data.table)
   
-  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  db <- removeTeamEvents(db)  # Assume this function is defined elsewhere
   
-  #tournaments won
-  wins <- db[,c('winner_name','tourney_id','tourney_name')]
+  db <- db[tourney_level == 'G']
   
-  #tournaments lost
-  losses <- unique(db[,c('loser_name','tourney_id','tourney_name')])
+  db <- db[!(score %in% c("W/O", "ABN", "(ABN)")) & !grepl("\\(WEA\\)", score)]
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- names(losses)[2] <- "id"
-  names(wins)[3] <- names(losses)[3] <- "tournament"
+  # Tournaments won
+  wins <- db[, .(name = winner_name, id = tourney_id, tournament = tourney_name)]
   
-  ## merge the tables by "name"
-  res <- rbind(wins, losses, all = TRUE, fill=TRUE)
+  # Tournaments lost
+  losses <- unique(db[, .(name = loser_name, id = tourney_id, tournament = tourney_name)])
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Merge wins and losses
+  res <- rbind(wins, losses)
   
-  same <- res[, .N, by = list(res$name, res$tournament)]
+  # Count number of times each player played each tournament
+  same <- res[, .N, by = .(name, tournament)][order(-N)]
   
-  ## order by decreasing age
-  same <- same[order(-N)] 
+  # Rename columns
+  setnames(same, c("name", "tournament", "N"), c("Player", "Tournament", "N"))
   
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Tournament"
-  names(same)[3] <- "N"
+  # Top 20
+  same <- same[1:20]
   
   print(same)
-  
 }
+
 
 
 SameSurfacePlayed <- function() {
   
-  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  library(data.table)
   
-  #tournaments won
-  wins <- db[,c('winner_name','tourney_id','tourney_name', 'surface')]
+  # Filter out unwanted scores
+  db <- db[!(score %in% c("W/O", "ABN", "(ABN)")) & !grepl("\\(WEA\\)", score)]
   
-  #tournaments lost
-  losses <- unique(db[,c('loser_name','tourney_id','tourney_name', 'surface')])
+  # Tournaments won
+  wins <- db[, .(name = winner_name, id = tourney_id, tournament = tourney_name, surface)]
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- names(losses)[2] <- "id"
-  names(wins)[3] <- names(losses)[3] <- "tournament"
+  # Tournaments lost
+  losses <- unique(db[, .(name = loser_name, id = tourney_id, tournament = tourney_name, surface)])
   
-  ## merge the tables by "name"
-  res <- rbind(wins, losses, all = TRUE, fill=TRUE)
+  # Combine wins and losses
+  res <- rbindlist(list(wins, losses), use.names = TRUE, fill = TRUE)
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Count number of matches per player per surface
+  same <- res[, .N, by = .(name, surface)][order(-N)]
   
-  same <- res[, .N, by = list(res$name, res$surface)]
+  # Rename columns for clarity
+  setnames(same, c("name", "surface", "N"), c("Player", "Surface", "N"))
   
-  ## order by decreasing age
-  same <- same[order(-N)] 
-  
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Surface"
-  names(same)[3] <- "N"
-  
-  #select first 20
-  same <- same[1:20,]
+  # Select top 20 players by matches played on a surface
+  same <- same[1:20]
   
   print(same)
-  
 }
+
 
 
 SameSeasonPlayed <- function() {
   
-  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  library(data.table)
+  library(stringr)
   
-  #tournaments won
-  wins <- db[,c('winner_name','tourney_id')]
+  # Filter unwanted scores
+  db_filtered <- db[!(score %in% c("W/O", "ABN", "(ABN)")) & !grepl("\\(WEA\\)", score)]
   
-  #tournaments lost
-  losses <- db[,c('loser_name','tourney_id')]
+  # Tournaments won
+  wins <- db_filtered[, .(name = winner_name, id = tourney_id)]
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- names(losses)[2] <- "id"
+  # Tournaments lost
+  losses <- db_filtered[, .(name = loser_name, id = tourney_id)]
   
-  ## merge the tables by "name"
+  # Combine wins and losses
   res <- rbind(wins, losses)
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Extract year from tourney_id (assuming format starts with year)
+  res[, year := str_sub(id, 1, 4)]
   
-  #extract year from tourney_date
-  res$year <- stringr::str_sub(res$id, 0 ,4)
+  # Count number of matches played by player per year
+  same <- res[, .N, by = .(name, year)][order(-N)]
   
-  same <- res[, .N, by = list(res$name, res$year)]
+  # Rename columns
+  setnames(same, c("name", "year", "N"), c("Player", "Season", "N"))
   
-  ## order by decreasing age
-  same <- same[order(-N)] 
-  
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Season"
-  names(same)[3] <- "N"
-  
-  print(same)
-  
+  # Print top 20 by default
+  print(same[1:20])
 }
+
 
 
 SameTournamentWins <- function() {
   
-  db <- removeTeamEvents(db)
+  # Filter out matches with walkovers, abandonments, or withdrawals
+  db_filtered <- db[!db$score %in% c("W/O", "ABN", "(ABN)")]
+  db_filtered <- db_filtered[!str_detect(db_filtered$score, "(WEA)")]
   
-  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  # Select winner name and tournament info
+  wins <- db_filtered[, c('winner_name', 'tourney_id', 'tourney_name')]
   
-  #tournaments won
-  wins <- db[,c('winner_name','tourney_id','tourney_name')]
+  # Simplify the tournament ID by removing everything before the first dash (including the dash)
+  # You might want to check this regex depending on the format of your IDs
+  wins$tourney_id <- sub("^[^-]*-", "", wins$tourney_id)
   
-  ## only select matches of a tournament
-  wins$tourney_id <- sub("^[^-]*", "", wins$tourney_id)
+  # Rename columns for convenience
+  names(wins) <- c("Player", "tourney_id", "Tournament")
   
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[2] <- "tourney_id"
-  names(wins)[3] <- "tournament"
+  # Count number of wins per player per tournament
+  win_counts <- wins[, .N, by = .(Player, tourney_id, Tournament)]
   
-  ## merge the tables by "name"
-  res <- wins
+  # Order by decreasing number of wins
+  win_counts <- win_counts[order(-N)]
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Keep only relevant columns for output
+  result <- win_counts[, .(Player, Tournament, Wins = N)]
   
-  same <- res[, .N, by = list(res$name, res$tourney_id)]
-  
-  ## order by decreasing age
-  same <- same[order(-N)]
-  
-  ## common name to merge with
-  names(same)[1] <- "name"
-  names(same)[2] <- "tourney_id"
-  names(same)[3] <- "N"
-  
-  print(same)
-  
-  finals <- db[round == 'F']
-  ## only select matches of a tournament
-  finals$tourney_id <- sub("^[^-]*", "", finals$tourney_id)
-  
-  officialName <- unique(finals[, c('tourney_id', 'tourney_name')])
-  
-  same <-
-    left_join(same, officialName, by = "tourney_id")
-  
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Tournament"
-  names(same)[3] <- "N"
-  
-  same <- same[,c("Player", "tourney_name", "N")]
-  
-  print(same)
-  
+  print(result)
 }
+
 
 
 SameSurfaceWins <- function() {
   
+  # Remove team events from the dataset (assuming removeTeamEvents is defined)
   db <- removeTeamEvents(db)
   
-  db <- db[!db$score=="W/O" & !db$score=="ABN" & !db$score=="(ABN)" & !str_detect(db$score, "(WEA)")]
+  # Filter out matches with walkovers, abandonments, or withdrawals
+  db <- db[!db$score %in% c("W/O", "ABN", "(ABN)")]
+  db <- db[!str_detect(db$score, "(WEA)")]
   
-  #tournaments won
-  wins <- db[,c('winner_name','tourney_id','surface')]
+  # Select winner name, tournament ID, and surface type
+  wins <- db[, c('winner_name', 'tourney_id', 'surface')]
   
-  ## common name to merge with
-  names(wins)[1] <- "name"
-  names(wins)[2] <- "id"
-  names(wins)[3] <- "surface"
+  # Rename columns for easier reference
+  names(wins) <- c("name", "id", "surface")
   
-  ## merge the tables by "name"
+  # Copy wins data for processing
   res <- wins
   
-  ## get rid of NAs, have 0 instead
+  # Replace any NA values with 0 (to avoid issues in counting)
   res[is.na(res)] <- 0
   
-  same <- res[, .N, by = list(res$name, res$surface)]
+  # Count the number of wins per player on each surface
+  same <- res[, .N, by = .(name, surface)]
   
-  ## order by decreasing age
+  # Order the results by descending number of wins
   same <- same[order(-N)] 
   
-  names(same)[1] <- "Player"
-  names(same)[2] <- "Surface"
-  names(same)[3] <- "N"
+  # Rename columns for output clarity
+  names(same) <- c("Player", "Surface", "N")
   
+  # Print the result showing players and their number of wins by surface
   print(same)
-  
 }
+
 

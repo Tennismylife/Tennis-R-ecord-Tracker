@@ -1,275 +1,273 @@
 EntriesOverall <- function() {
   
   db <- removeTeamEvents(db)
-
-  #tournaments won
-  wins <- unique(db[,c('winner_name','tourney_name','tourney_date')])
-  wins <- dplyr::distinct(wins)
   
-  #tournaments lost
-  losses <- unique(db[,c('loser_name','tourney_name','tourney_date')])
-  losses <- dplyr::distinct(losses)
+  # Combine player names
+  players <- c(db$winner_name, db$loser_name)
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- "wins"
-  names(losses)[2] <- "losses"
+  # Create a dataframe with players and tournament IDs
+  participations <- data.frame(
+    name = players,
+    tourney_id = c(db$tourney_id, db$tourney_id)
+  )
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, all = TRUE, allow.cartesian=TRUE)
-  res <- dplyr::distinct(res)
+  # Remove duplicates to have each player's participation in a tournament only once
+  unique_participations <- unique(participations)
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Count unique tournaments for each player
+  tournaments_count <- table(unique_participations$name)
   
-  ## sum the wins and losses into a new column played
-  entries <- res[,.N, by = .(name)]
+  # Convert table to a data frame
+  result <- data.frame(
+    name = names(tournaments_count),
+    number_of_tournaments = as.vector(tournaments_count)
+  )
   
-  setorder(entries, -N, na.last=FALSE)
+  # Sort the dataframe by number_of_tournaments in descending order
+  sorted_result <- result[order(-result$number_of_tournaments), ]
   
-  print(entries)
+  return(sorted_result)
 }
 
 EntriesSurface <- function(court) {
   
   db <- removeTeamEvents(db)
   
-  #Select surface
-  dbm <- db[surface == court]
+  db <- db[surface == court]
   
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date')])
-  wins <- dplyr::distinct(wins)
+  # Combine player names
+  players <- c(db$winner_name, db$loser_name)
   
-  #tournaments lost
-  losses <- unique(dbm[,c('loser_name','tourney_name','tourney_date')])
-  losses <- dplyr::distinct(losses)
+  # Create a dataframe with players and tournament IDs
+  participations <- data.frame(
+    name = players,
+    tourney_id = c(db$tourney_id, db$tourney_id)
+  )
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- "wins"
-  names(losses)[2] <- "losses"
+  # Remove duplicates to have each player's participation in a tournament only once
+  unique_participations <- unique(participations)
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, all = TRUE, allow.cartesian=TRUE)
-  res <- dplyr::distinct(res)
+  # Count unique tournaments for each player
+  tournaments_count <- table(unique_participations$name)
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Convert table to a data frame
+  result <- data.frame(
+    name = names(tournaments_count),
+    number_of_tournaments = as.vector(tournaments_count)
+  )
   
-  ## sum the wins and losses into a new column played
-  entry <- res[,.N, by = .(name)]
+  # Sort the dataframe by number_of_tournaments in descending order
+  sorted_result <- result[order(-result$number_of_tournaments), ]
   
-  #entry <- subset(entry, N > 10)
-  
-  setorder(entry, -N, na.last=FALSE)
-  
-  names(entry)[2] <- "entries"
-  
-  print(entry)
+  return(sorted_result)
 }
 
 
 EntriesCategory <- function(category) {
   
-  ## only select tournaments in the previously defined pool
-  dbm <- db[tourney_level == category]
+  db <- db[tourney_level == category]
   
-  dbm1 <- dbm[round == 'F']
-  dbm1 <- unique(dbm1[,c('winner_name','tourney_name','tourney_date')])
-  dbm2 <- unique(dbm[,c('loser_name','tourney_name','tourney_date')])
+  # Combine player names
+  players <- c(db$winner_name, db$loser_name)
   
-  ## wins
-  wins <- dbm1[,.N, by = .(winner_name)]
-  ## losses
-  losses <- dbm2[,.N, by = .(loser_name)]
+  # Create a dataframe with players and tournament IDs
+  participations <- data.frame(
+    name = players,
+    tourney_id = c(db$tourney_id, db$tourney_id)
+  )
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- "wins"
-  names(losses)[2] <- "losses"
+  # Remove duplicates to have each player's participation in a tournament only once
+  unique_participations <- unique(participations)
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name"), all=TRUE)
+  # Count unique tournaments for each player
+  tournaments_count <- table(unique_participations$name)
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Convert table to a data frame
+  result <- data.frame(
+    name = names(tournaments_count),
+    number_of_tournaments = as.vector(tournaments_count)
+  )
   
-  ## sum the wins and losses into a new column played
-  res <- res[, entries:=wins+losses]
+  # Sort the dataframe by number_of_tournaments in descending order
+  sorted_result <- result[order(-result$number_of_tournaments), ]
   
-  res <- res[,c('name','entries')]
-  
-  ## order by decreasing total matches
-  setorder(res, -entries)
-   
-  print(res)
+  return(sorted_result)
 }
 
 EntriesTournament <- function(id) {
   
   ## only select matches of a tournament
-  db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
+  db$id_to_search <- sub("^[^-]*", "", db$tourney_id)
   
-  dbm <- db[tourney_id == id]
+  db <- db[id_to_search == id]
   
-  #tournaments won
-  wins <- unique(dbm[,c('winner_name','tourney_name','tourney_date')])
-  wins <- dplyr::distinct(wins)
+  # Combine player names
+  players <- c(db$winner_name, db$loser_name)
   
-  #tournaments lost
-  losses <- unique(dbm[,c('loser_name','tourney_name','tourney_date')])
-  losses <- dplyr::distinct(losses)
+  # Create a dataframe with players and tournament IDs
+  participations <- data.frame(
+    name = players,
+    tourney_id = c(db$tourney_id, db$tourney_id)
+  )
   
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- "wins"
-  names(losses)[2] <- "losses"
+  # Remove duplicates to have each player's participation in a tournament only once
+  unique_participations <- unique(participations)
   
-  ## merge the tables by "name"
-  res <- merge(wins, losses, all = TRUE, allow.cartesian=TRUE)
-  res <- dplyr::distinct(res)
+  # Count unique tournaments for each player
+  tournaments_count <- table(unique_participations$name)
   
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
+  # Convert table to a data frame
+  result <- data.frame(
+    name = names(tournaments_count),
+    number_of_tournaments = as.vector(tournaments_count)
+  )
   
-  ## sum the wins and losses into a new column played
-  entry <- res[,.N, by = .(name)]
+  # Sort the dataframe by number_of_tournaments in descending order
+  sorted_result <- result[order(-result$number_of_tournaments), ]
   
-  setorder(entry, -N, na.last=FALSE)
-  
-  print(entry)
+  return(sorted_result)
 }
 
 
-
-EntrieTournamentByAge <- function(tournament1, tournament2, tournament3) {
+EntriesCategoryByAge <- function(category) {
+  # Extract data for winners in the specified tournament category and round 'F' (Finals)
+  wins <- unique(db[tourney_level == category & round == 'F', 
+                    .(tourney_name, tourney_date, flag = winner_ioc, name = winner_name, age = winner_age)])
   
-  ## only select tournaments in the previously defined pool
-  dbm <- db[tourney_name == tournament1 | tourney_name == tournament2 | tourney_name == tournament3]
+  # Extract data for losers in the specified tournament category
+  losses <- unique(db[tourney_level == category, 
+                      .(tourney_name, tourney_date, flag = loser_ioc, name = loser_name, age = loser_age)])
   
-  dbm1 <- dbm[round == 'F']
-  dbm1 <- unique(dbm1[,c('tourney_name', 'tourney_date', 'winner_ioc', 'winner_name', 'winner_age')])
+  # Combine winners and losers into a single dataset
+  res <- rbindlist(list(wins, losses), fill = TRUE)
   
-  dbm2 <- unique(dbm[,c('tourney_name', 'tourney_date', 'loser_ioc', 'loser_name', 'loser_age')])
+  # Extract only the year from the tournament date
+  res[, tourney_date := substr(tourney_date, 1, 4)]
   
-  ## wins
-  wins <- dbm1
+  # Clean and convert the 'age' column to numeric format
+  res[, age := suppressWarnings(as.numeric(str_replace_all(substr(age, 1, 5), ',', '.')))]
   
-  ## losses
-  losses <- dbm2
-
-  ## common name to merge with
-  names(wins)[3] <- names(losses)[3] <- "flag"
-  names(wins)[4] <- names(losses)[4] <- "name"
-  names(wins)[5] <- names(losses)[5] <- "age"
+  # Sort the data by age in ascending order
+  res <- res[order(age)]
   
-  ## merge the tables by "name"
-  res <- rbind( wins, losses, fill=TRUE)
-  res$tourney_date <- substr(res$tourney_date, 0, 4)
-  res$age <- substr(res$age, 0, 5)
-  res$age <- suppressWarnings(as.numeric(str_replace_all(res$age,pattern=',',replacement='.')))
-
-  ## order by decreasing age
-  setorder(res, -age, na.last=FALSE)
-
+  # Print the final result
   print(res)
 }
 
-
-EntrieCategoryByAge <- function(category) {
-
-  ## only select tournaments in the previously defined pool
-  dbm <- db[tourney_level == category]
-  
-  dbm1 <- dbm[round == 'F']
-  dbm1 <- unique(dbm1[,c('tourney_name', 'tourney_date', 'winner_ioc', 'winner_name', 'winner_age')])
-  
-  dbm2 <- unique(dbm[,c('tourney_name', 'tourney_date', 'loser_ioc', 'loser_name', 'loser_age')])
-  
-  ## wins
-  wins <- dbm1
-
-  ## losses
-  losses <- dbm2
-  
-  ## common name to merge with
-  names(wins)[3] <- names(losses)[3] <- "flag"
-  names(wins)[4] <- names(losses)[4] <- "name"
-  names(wins)[5] <- names(losses)[5] <- "age"
-  
-  ## merge the tables by "name"
-  res <- rbind( wins, losses, fill=TRUE)
-  
-  res$tourney_date <- substr(res$tourney_date, 0, 4)
-  res$age <- substr(res$age, 0, 5)
-  res$age <- suppressWarnings(as.numeric(str_replace_all(res$age,pattern=',',replacement='.')))
-
-  ## order by decreasing age
-  res <- res[order(-age)]
-  
-  print(res)
-}
 
 
 EntrieSurfaceByAge <- function(court, order, stage) {
   
   db <- removeTeamEvents(db)
   
-  dbm <- db[surface == court]
+  db <- db[surface == court]
   
-  if(stage != 'W' & stage!='0')
-    dbm <- dbm[round == stage]
+  if(stage == "W") {
+    # If stage is "W", extract only wins from the final round
+    res <- unique(db[surface == court & round == "F", 
+                     .(tourney_name, tourney_date, flag = winner_ioc, name = winner_name, age = winner_age)])
+  } else if(stage == 0) {
+    # If stage is 0, take all data for the surface regardless of round
+    wins <- unique(db[, 
+                      .(tourney_name, tourney_date, flag = winner_ioc, name = winner_name, age = winner_age)])
+    
+    losses <- unique(db[, 
+                        .(tourney_name, tourney_date, flag = loser_ioc, name = loser_name, age = loser_age)])
+    
+    res <- rbindlist(list(wins, losses), fill = TRUE)
+  } else {
+    # Extract data for winners in the specified round
+    wins <- unique(db[surface == court & round == stage, 
+                      .(tourney_name, tourney_date, flag = winner_ioc, name = winner_name, age = winner_age)])
+    
+    # Extract data for losers in the specified round
+    losses <- unique(db[surface == court & round == stage, 
+                        .(tourney_name, tourney_date, flag = loser_ioc, name = loser_name, age = loser_age)])
+    
+    res <- rbindlist(list(wins, losses), fill = TRUE)
+  }
   
-  if(stage == 'W')
-    dbm <- dbm[round == 'F']
+  # Extract only the year from the tournament date
+  res[, tourney_date := substr(tourney_date, 1, 4)]
   
-  dbm1 <- unique(dbm[,c('tourney_name', 'tourney_id', 'winner_ioc', 'winner_name', 'winner_age')])
+  # Clean and convert the 'age' column to numeric format
+  res[, age := suppressWarnings(as.numeric(str_replace_all(substr(age, 1, 5), ',', '.')))]
   
-  if(stage != 'W')
-    dbm2 <- unique(dbm[,c('tourney_name', 'tourney_id', 'loser_ioc', 'loser_name', 'loser_age')])
+  if(order == "oldest")
+    res <- res[order(-age)] 
   
-  ## wins
-  wins <- dbm1
+  if(order == "youngest")
+    res <- res[order(age)]
   
-  ## losses
-  if(stage != 'W')
-    losses <- dbm2
+  # Print the final result
+  print(res)
+}
+
+
+EntriesByPlayer <- function() {
+  
+  db <- removeTeamEvents(db)
+  
+  player <- 'Jan-Lennard Struff'
+  
+  #tournaments won
+  wins <- unique(db[,c('winner_name','tourney_name','tourney_id')])
+  wins <- dplyr::distinct(wins)
+  wins <- subset(wins, winner_name == player)
+  
+  
+  #tournaments lost
+  losses <- unique(db[,c('loser_name','tourney_name','tourney_id')])
+  losses <- dplyr::distinct(losses)
+  losses <- subset(losses, loser_name == player)
+  
   
   ## common name to merge with
-  names(wins)[3] <- "flag"
-  names(wins)[4] <- "name"
-  names(wins)[5]  <- "age"
-  
-  if(stage != 'W')
-  {
-    names(losses)[3] <- "flag"
-    names(losses)[4] <- "name"
-    names(losses)[5] <- "age"
-  }
+  names(wins)[1] <- names(losses)[1] <- "name"
+  names(wins)[2] <-  names(losses)[2] <- "tournament"
   
   ## merge the tables by "name"
-  if(stage != 'W'){
-    res <- rbind(wins, losses, fill=TRUE)
-    res <- unique(res)
-  }
-  else 
-    res <- wins
+  res <- rbind(wins, losses, fill = TRUE)
+  res <- dplyr::distinct(res)
   
-  res$tourney_id <- substr(res$tourney_id, 0, 4)
+  #extract year from tourney_date
+  res$year <- stringr::str_sub(res$tourney_id, 0 ,4)
   
-  res$age <- substr(res$age, 0, 5)
-  res$age <- suppressWarnings(as.numeric(str_replace_all(res$age,pattern=',',replacement='.')))
-  
-  if(order == 'oldest'){
-    ## order by decreasing age
-    res <- res[order(-age)] 
-  }
-  
-  if(order == 'youngest'){
-    ## order by creasing age
-    res <- res[order(age)] 
-  }
+  res <- res[,c("name", "tournament", "year")]
   
   print(res)
+}
+
+
+MostEntriesNoTitle <- function() {
+  # 1. Find winners of each tournament (who won the final round)
+  final_matches <- db[db$round == "F", ]
+  final_winners <- unique(final_matches[, c("tourney_id", "winner_name")])
+  
+  # 2. Find all players and the tournaments they played in (as winner or loser)
+  winners_part <- unique(db[, c("winner_name", "tourney_id")])
+  losers_part <- unique(db[, c("loser_name", "tourney_id")])
+  
+  colnames(winners_part) <- c("player", "tourney_id")
+  colnames(losers_part) <- c("player", "tourney_id")
+  
+  all_participations <- unique(rbind(winners_part, losers_part))
+  
+  # 3. Count how many unique tournaments each player participated in
+  tournaments_count <- aggregate(tourney_id ~ player, data = all_participations, FUN = function(x) length(unique(x)))
+  colnames(tournaments_count)[2] <- "#Ts"  # rename column
+  
+  # 4. List of players who won at least one tournament (won the final)
+  winners <- unique(final_winners$winner_name)
+  
+  # 5. Players who never won a tournament
+  non_winners <- tournaments_count[!(tournaments_count$player %in% winners), ]
+  
+  # 6. Filter players who participated in more than one tournament
+  result <- non_winners[non_winners$`#Ts` > 1, ]
+  
+  # 7. Sort descending by number of tournaments
+  result <- result[order(-result$`#Ts`), ]
+  
+  return(result)
 }

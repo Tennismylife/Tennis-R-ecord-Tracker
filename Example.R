@@ -1,11 +1,10 @@
 library("xlsx")
 library("dplyr")
 library("stringr")
-library(tableHTML)
+library(tableHTML) 
 library(splitstackshape)
 library(tibble)
 
-#Main
 source("Reader.R")
 source("Played.R")
 source("Wins.R")
@@ -16,1445 +15,1040 @@ source("CounterSeason.R")
 source("Age.R")
 source("Counter.R")
 source("AverageAge.R")
-source("Percentage.R")
-source("Consecutive.R")
+source("Percentage/Percentage.R")
 source("AgeFormat.R")
-
-#if(FALSE){
 
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
 MostWinsNoSlammer <- function() {
   
-  res <- db[tourney_level == 'G' & round == 'F']
+  res <- db[round == 'F' & tourney_level == 'G', c("winner_name")]
+  slam_winners <- unique(res)
   
-  res <- res[, c("winner_name")]
+  wins <- WinsOverall()
   
-  wins <- WinsCategory('G')
+  names(slam_winners)[1] <- "winner_name"
+  names(wins)[1] <- "winner_name"
   
-  wins <- subset(wins, !(wins$winner_name %in% res$winner_name))
+  # Filter out players who have won a Slam
+  no_slam_winners <- subset(wins, !(winner_name %in% slam_winners$winner_name))
   
-  print(wins)
+  # Optional: sort by win count
+  if ("wins" %in% colnames(no_slam_winners)) {
+    no_slam_winners <- no_slam_winners[order(-no_slam_winners$wins), ]
+  }
   
-  ## order by decreasing
-  setorder(wins, -N, na.last=FALSE)
-  
-  
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-PercentageInSlamsVsTop10 <- function() {
-  
-  db <- db[!str_detect(db$tourney_name, "Laver Cup")]
-  
-  db <- db[surface == 'Hard']
-  
-  ## 5th
-  db <- db[str_count(db$score, "-") == '5']
-  
-  #Decider
-  #db <- db[(str_count(db$score, "-") == '5' & best_of == 5) | (str_count(db$score, "-") == '3' & best_of == 3)]
-  
-  dbm <- db[loser_rank < 11]
-  
-  #dbm <- db[winner_age < 23.45]
-  
-  #dbm <- dbm[tourney_level =='G']
-  
-  ## drop walkover matches (not countable)
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !str_detect(dbm$score, "WEA") & !str_detect(dbm$score, "ABN")]
-  
-  wins <- dbm[, .N, by = winner_name]
-  
-  ## losses
-  dbm <- db[winner_rank < 11]
-  
-  #dbm <- db[loser_age < 23.45]
-  
-  #dbm <- dbm[tourney_level =='G']
-  
-  ## drop walkover matches (not countable)
-  dbm <- dbm[!dbm$score=="W/O" & !dbm$score=="DEF" & !str_detect(dbm$score, "WEA") & !str_detect(dbm$score, "ABN")]
-  
-  losses <- dbm[, .N, by = loser_name]
-  
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- "wins"
-  names(losses)[2] <- "losses"
-  
-  ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name"), all = TRUE)
-  
-  ## sum the wins and losses into a new column played
-  res <- res[, played := wins + losses]
-  
-  res <- res[played > 30]
-  
-  res <- res[, percentage := wins / played * 100]
-  
-  res$percentage <- substr(res$percentage, 0, 5)
-  res$percentage <-
-    suppressWarnings(as.numeric(
-      str_replace_all(res$percentage, pattern = ',', replacement = '.')
-    ))
-  
-  ## order by decreasing total matches
-  setorder(res, -percentage)
-  
-  print(res)
-  
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-TimeToWinSlam <- function() {
-  res <- db[round == 'F' & tourney_level == 'G']
-  res <-
-    res[, c("winner_name",
-            "tourney_id",
-            "tourney_name",
-            "tourney_date",
-            "winner_name")]
-  
-  db <- db[tourney_level == 'G']
-  
-  wins <- match_df(db, res)
-  
-  #calculate sum by edition
-  timeoncourt <-
-    aggregate(
-      wins$minutes,
-      by = list(tourney_id = wins$tourney_id),
-      FUN = sum,
-      na.rm = TRUE
-    )
-  
-  names(timeoncourt)[2] <- "minutes"
-  
-  timeoncourt <- arrange(timeoncourt, minutes)
-  
-  res <- db[round == 'F' & tourney_level == 'G']
-  officialName <-
-    unique(res[, c('tourney_id', 'tourney_name', 'tourney_date', 'winner_name')])
-  
-  timeoncourt <-
-    left_join(officialName, timeoncourt, by = "tourney_id")
-  
-  timeoncourt <- arrange(timeoncourt, desc(minutes))
-  
-  #extract year from tourney_date
-  timeoncourt$year <- stringr::str_sub(timeoncourt$tourney_id, 0 ,4)
-  
-  timeoncourt <- timeoncourt[, c('tourney_name', 'year', 'winner_name', 'minutes')]
-  
-  
-  print(timeoncourt)
-}
-
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-PercentageAsNumber1 <- function() {
-  dbm <- db
-  
-  dbm <-
-    dbm[!dbm$score == "W/O" &
-          !dbm$score == "DEF" &
-          !dbm$score == "(ABN)" & !dbm$score == "ABN"]
-  
-  dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 0 , 4)
-  #dbm <- dbm[tourney_id == year]
-  
-  ## wins
-  dbm1 <- dbm[winner_rank == '1']
-  wins <- dbm1[, .N, by = winner_name]
-  
-  ## losses
-  dbm1 <- dbm[loser_rank == '1']
-  losses <- dbm1[, .N, by = loser_name]
-  
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- "name"
-  names(wins)[2] <- "wins"
-  names(losses)[2] <- "losses"
-  
-  ## merge the tables by "name"
-  res <- merge(wins, losses, by = c("name"), all = TRUE)
-  
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
-  
-  ## sum the wins and losses into a new column played
-  res <- res[, played := wins + losses]
-  res <- res[, percentage := (wins / played) * 100]
-  
-  res$percentage <- substr(res$percentage, 0, 5)
-  res$percentage <-
-    suppressWarnings(as.numeric(
-      str_replace_all(res$percentage, pattern = ',', replacement = '.')
-    ))
-  
-  res$percentage <- paste(res$percentage, "%")
-  
-  ## order by decreasing total matches
-  setorder(res, -percentage)
-  
-  #res <- res[1:1,]
-  print(res)
-  
+  return(no_slam_winners)
 }
 
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
 WinsAgainstNumber1 <- function() {
-  dbm <- db
   
-  #dbm <- dbm[loser_name == 'Roger Federer' & surface == 'Grass']
+  # Extract year from tourney_id
+  db$year <- stringr::str_sub(db$tourney_id, 0 ,4)
   
-  dbm <-
-    dbm[!dbm$score == "W/O" &
-          !dbm$score == "DEF" &
-          !dbm$score == "(ABN)" & !dbm$score == "ABN"]
+  # Remove matches that were not played (walkovers, defaults, abandoned)
+  db <- db[!db$score %in% c("W/O", "DEF", "(ABN)", "ABN")]
   
-  ## ranking #1
-  dbm <- dbm[loser_rank == '1']
+  # Keep only matches where the loser was ranked #1
+  db <- db[loser_rank == 1]
   
-  losses <- dbm[, .N, by = winner_name]
+  # Count wins against world #1 by winner_name
+  losses <- db[, .N, by = winner_name]
   
-  ## order by decreasing total matches
+  # Order by most wins
   setorder(losses, -N)
   
-  losses <- losses[1:20,]
+  # Top 20 players
+  losses <- losses[1:20, ]
   
   print(losses)
-  
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-Most5SetterPlayed <- function() {
-  
-  db <- db[tourney_level == 'G']
-  
-  ## drop walkover matches (not countable)
-  db <- db[!db$score == "W/O" &
-             !db$score == "DEF" & !db$score == "(ABN)"]
-  
-  wins <- db[, c('winner_name', 'tourney_id', 'score')]
-  
-  wins <-
-    wins[lengths(regmatches(wins$score, gregexpr("-", wins$score))) == '5']
-  
-  losses <- db[, c('loser_name', 'tourney_id', 'score')]
-  
-  losses <-
-    losses[lengths(regmatches(losses$score, gregexpr("-", losses$score))) == '5']
-  
-  names(wins)[1] <- names(losses)[1] <- "name"
-  
-  matches <- union(wins, losses)
-  
-  #extract year from tourney_date
-  matches$tourney_id <- stringr::str_sub(matches$tourney_id, 0 , 4)
-  
-  names(matches)[2] <- "year"
-  
-  #matches <- matches[year == '2020']
-  
-  print(matches)
-  
-  season <- matches[, .N, by = list(matches$name, matches$year)]
-  
-  count <- matches[, .N, by = matches$name]
-  
-  count <- count[order(-N)]
-  
-  print(count)
-  
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-NoBig3inQFs <- function() {
-  
-  db <- db[tourney_level == 'M']
-  
-  wins <- db[(winner_name == 'Rafael Nadal' | winner_name == 'Roger Federer' | winner_name == 'Novak Djokovic')]
-  wins <-  unique(wins[, c('tourney_name', 'tourney_id', 'winner_name')])
-  
-  losses <- db[(loser_name == 'Rafael Nadal' | loser_name == 'Roger Federer' | loser_name == 'Novak Djokovic')]
-  losses <- unique(losses[, c('tourney_name', 'tourney_id', 'loser_name')])
-  
-  names(wins)[3] <- names(losses)[3] <- "Player"
-  
-  ## merge the tables by "name"
-  res <- rbind(wins, losses)
-  
-
-  res <- subset(db, !(db$tourney_id %in% res$tourney_id))
-  
-  #extract year from tourney_date
-  res$year <- stringr::str_sub(res$tourney_id, 0 ,4)
-  
-  #print(res)
-  
-  res <-  unique(res[, c('tourney_name', 'year')])
-  
-  print(res)
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-RoundAtAge <- function() {
-  
-  db <- removeTeamEvents(db)
-  
-  db <- db[tourney_level == 'M'] 
-  
-  #stage <-  'F'
-  
-  #db <- db[round == stage]
-  
-  db <- db[winner_age < 24]
-  
-  #db <- db[winner_name == 'Bjorn Borg']
-  
-  #if(stage == 'F')
-    #db <- db[round == 'F' & !str_detect(db$score, "WEA")]
-  
-  res <- db[, .N, by = list(db$winner_name)]
-  
-  setorder(res, -N)
-  
-  print(res)
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-PercentageEntryWinsinCategorySurfaceOverall <-  function() {
-  
-  category <- 'M'
-  
-  surface <- 'Clay'
-  
-  db <- removeTeamEvents(db)
-  
-  #entries <- EntriesCategory(category)
-  
-  #counter <- CountCategoryRound(category, "W")
-  
-  #entries <- EntriesOverall()
-  
-  #counter <- CountOverallRound('W')
-  
-  entries <- EntriesSurface(surface)
-  
-  counter <- CountSurfaceRound(surface, 'F')
-  
-  #counter <- subset(counter, wins > 10)
-  
-  percentage <- merge(entries, counter, by = "name", all = TRUE)
-  
-  percentage[is.na(percentage)] <- 0
-  
-  res <- percentage[, percentage := played / entries * 100]
-  
-  print(percentage)
-  
-  res$percentage <- substr(res$percentage, 0, 5)
-  res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
-  
-  
-  ## order by decreasing total matches
-  setorder(res, -percentage)
-  
-  res$percentage <- paste(res$percentage, "%")
-  
-  print(res)
-  
-  res <- res[,c("name", "wins", "entries", "percentage")]
-  
-  return(res)
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-PercentageSameSeasonbyPlayer <- function() {
-  
-  player <- 'Roger Federer'
-  
-  dbm <- db
-  dbm <-
-    dbm[!dbm$score == "W/O" & !dbm$score == "DEF" &
-          !dbm$score == "(ABN)"]
-  
-  #dbm <- dbm[surface == 'Clay']
-  
-  #extract year from tourney_date
-  dbm$tourney_id <- stringr::str_sub(dbm$tourney_id, 0 , 4)
-  
-  ## wins
-  dbm1 <- dbm[winner_name ==  player]
-  wins <- dbm1[, .N, by = list(winner_name, tourney_id)]
-  
-  ## losses
-  dbm1 <- dbm[loser_name == player]
-  losses <- dbm1[, .N, by = list(loser_name, tourney_id)]
-  
-  dbm2 <- dbm[round == 'F']
-  trophy <- dbm2[, .N, by = list(winner_name, tourney_id)]
-  
-  ## common name to merge with
-  names(wins)[1] <- names(losses)[1] <- names(trophy)[1] <- "name"
-  names(wins)[3] <- "wins"
-  names(losses)[3] <- "losses"
-  
-  ## merge the tables by "name"
-  res <-
-    merge(wins,
-          losses,
-          by = c("name", "tourney_id"),
-          all.x = TRUE)
-  
-  ## merge the tables by "name"
-  res <-
-    merge(res,
-          trophy,
-          by = c("name", "tourney_id"),
-          all.x = TRUE)
-  
-  ## get rid of NAs, have 0 instead
-  res[is.na(res)] <- 0
-  
-  ## sum the wins and losses into a new column played
-  res <- res[, played := wins + losses]
-  
-  totalLosses <- 0
-  totalwins <- 0
-  totalTitles <- 0
-  
-  library(foreach)
-  foreach(i = 1:length(res$played)) %do%
-    {
-      totalLosses <- totalLosses + res$losses[i]
-      res$totLosses[i] <-  totalLosses
-      
-      totalwins <- totalwins + res$wins[i]
-      res$totalwins[i] <-  totalwins
-      
-      res$percTot[i] <- totalwins / (totalwins + totalLosses) * 100
-      
-      totalTitles <- totalTitles + res$N[i]
-      res$totTitle[i] <- totalTitles
-      
-    }
-  
-  ## calculate winning percentage
-  #res <- res[played > 50]
-  
-  res <- res[, percyear := wins / played * 100]
-  
-  res$percyear <- substr(res$percyear, 0, 5)
-  res$percyear <-
-    suppressWarnings(as.numeric(
-      str_replace_all(res$percyear, pattern = ',', replacement = '.')
-    ))
-  
-  res$percyear <- paste(res$percyear, "%")
-  
-  
-  res$percTot <- substr(res$percTot, 0, 5)
-  res$percTot <-
-    suppressWarnings(as.numeric(str_replace_all(
-      res$percTot, pattern = ',', replacement = '.'
-    )))
-  
-  res$percTot <- paste(res$percTot, "%")
-  
-  
-  names(res)[2] <- "year"
-  
-  ## order by decreasing total matches
-  setorder(res, year)
-  
-  res <-
-    res[, c(
-      "name",
-      "year",
-      "wins",
-      "losses",
-      "percyear",
-      "N",
-      "totalwins",
-      "totLosses",
-      "percTot",
-      "totTitle"
-    )]
-  
-  
-  #res <- res[1:100,]
-  print(res)
-  
 }
 
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-MostEntriesNoTitle <- function() {
+Top10BeatenToWinASlam <- function() {
   
-  stat <- SameTournamentEntries()
+  setDT(db)
   
-  res <- db[round == 'F']
-  res <- res[, c("tourney_name", "winner_name")]
+  # Convert to integer
+  db[, loser_rank := as.integer(loser_rank)]
+  db[, loser_seed := as.integer(loser_seed)]
   
-  names(res)[1] <- "Tournament"
-  names(res)[2] <- "Player"
+  # Filter Grand Slam finals
+  finals <- db[round == 'F' & tourney_level == 'G']
   
-  print(res)
+  # Get unique winners of those finals
+  winners <- unique(finals[, .(tourney_id, winner_name)])
   
-  res <- res[, c("Tournament", "Player")]
+  # Filter matches where these winners played in those tournaments
+  wins <- db[tourney_id %in% winners$tourney_id & winner_name %in% winners$winner_name]
   
-  stat <- anti_join(stat, res)
-}
-
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-Top10ToWinMasters <- function() {
+  # Filter matches with losers ranked top 10
+  wins_top10 <- wins[loser_rank < 11 & !is.na(loser_rank)]
   
-  category <- 'M'
+  # Count top10 beaten per winner and tournament
+  stat <- wins_top10[, .N, by = .(tourney_id, winner_name)]
   
-  stat <- db[tourney_level == category & loser_rank < 11]
+  # Set keys for merging
+  setkey(winners, tourney_id, winner_name)
+  setkey(stat, tourney_id, winner_name)
   
-  res <- db[round == 'F' & tourney_level == category]
-  res <-
-    res[, c("tourney_id", "tourney_name", "tourney_date", "winner_name")]
+  # Merge full list of winners with counts (N), fill missing with 0
+  stat_full <- stat[winners, on = .(tourney_id, winner_name)]
+  stat_full[is.na(N), N := 0]
   
-  dbm <- db[tourney_level == category & loser_rank < 11]
-  wins <- match_df(dbm, res)
+  # Add official tournament names
+  official_names <- unique(finals[, .(tourney_id, tourney_name)])
+  stat_full <- merge(stat_full, official_names, by = "tourney_id", all.x = TRUE)
   
-  library(plyr)
-  stat <- aggregate(
-    cbind(count = tourney_id) ~ tourney_id,
-    data = wins,
-    FUN = function(x) {
-      NROW(x)
-    }
-  )
+  # Extract year
+  stat_full[, year := substr(tourney_id, 1, 4)]
   
-  res <- db[round == 'F' & tourney_level == category]
-  officialName <-
-    unique(res[, c('tourney_id', 'tourney_name', 'winner_name')])
+  # Reorder columns and sort descending
+  stat_full <- stat_full[, .(tourney_name, year, winner_name, N)]
+  setorder(stat_full, -N)
   
-  stat <- join(officialName, stat, by = "tourney_id")
-  
-  #extract year from tourney_id
-  stat$tourney_id <- stringr::str_sub(stat$tourney_id, 0 , 4)
-  
-  #stat <- stat[,c("tourney_id", "tourney_name")]
-  
-  ## order by decreasing
-  setorder(stat,-count, na.last = FALSE)
+  return(stat_full)
 }
 
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
 LessWinsCategorybyWinner <- function(category) {
+  # Get the winners of final matches for the given category
+  winners_final <- db[round == 'F' & tourney_level == category, winner_name]
   
-  res <- db[round == 'F' & tourney_level == category]
+  # Filter all matches in the category where the winner was in the finals
+  wins <- db[tourney_level == category & winner_name %in% winners_final]
   
-  res <- res[, c("winner_name")]
+  # Remove matches with walkovers, defaults, or abandoned scores
+  wins <- wins[!score %in% c("W/O", "DEF", "(ABN)")]
   
-  dbm <- db[tourney_level == category]
-  wins <- match_df(dbm, res)
+  # Count the number of wins per winner
+  res <- wins[, .N, by = winner_name]
   
-  ## only select tournaments in the previously defined pool
-  dbm <- wins
+  # Order results by ascending number of wins
+  setorder(res, N)
   
-  ## drop walkover matches (not countable)
-  dbm <-
-    dbm[!dbm$score == "W/O" & !dbm$score == "DEF" &
-          !dbm$score == "(ABN)"]
-  
-  ## count occurrences of won matches
-  res <- dbm[, .N, by = winner_name]
-  
-  ## order by decreasing
-  setorder(res, N, na.last = FALSE)
-  
-  #res <- res[1:20,]
-  
-  print(res)
-}
-
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-AgeOfNTitle <- function() {
-  
-  db <- removeTeamEvents(db)
-  
-  N <- '4'  
-
-  ## drop walkover matches (not countable)
-  #db <- db[!db$score=="W/O" & !db$score=="DEF" & !str_detect(db$score, "WEA") & !str_detect(db$score, "ABN")]
-  
-  #db <- db[surface == 'Clay']
-  
-  #db <- db[tourney_level == 'M']
-  
-  #db <- db[round == 'QF']
-  
-  #db <- db[winner_ioc == 'ITA']
-  
-  db <- db[loser_rank < 11]
-  
-  stat <- getanID(db, "winner_name")
-  
-  # #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 , 4)
-  
-  stat <- stat[.id == N]
-  
-  #stat$winner_age <- substr(stat$winner_age, 0, 5)
-   
-  #stat$winner_age <- gsub('\\.', ',', stat$winner_age)
-  
-  ## order by decreasing
-  setorder(stat, winner_age, na.last = FALSE)
-  
-  #stat <- Formatwinner_age(stat)
-  
-  stat <-
-    stat[, c(
-      "tourney_name",
-      "year",
-      "round",
-      "winner_name",
-      "winner_age",
-      ".id",
-      "score"
-    )]
+  # Return the result table
+  return(res)
 }
 
 
 
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-NWinsatAge <- function(){
-  
-  db <- removeTeamEvents(db)
-  
-  #db <- db[tourney_level == 'M']
-  
-  db <- db[surface == 'Hard']
-  
-  db <- db[round == 'SF']
-  
-  db <- db[winner_age < 25] 
-  
-  db <- db %>% add_count(winner_name)
-  
-  db <- unique(db[, c("winner_name","n")])
-  
-  #db <- db[winner_name == 'Novak Djokovic' | winner_name == 'Daniil Medvedev']
-  
-  setorder(db,-n, na.last = FALSE)
-  
-}
-
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-QualifiersinRound <- function(){
+QualifiersinRound <- function() {
   
+  # Filter matches where the winner was a qualifier (seed or entry 'Q') and round is Quarter-Final ('QF')
   stat <- db[(winner_seed == 'Q' | winner_entry == 'Q') & round == 'QF']
   
-  # #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
+  # Extract year from tourney_id (assumes first 4 characters represent the year)
+  stat[, year := stringr::str_sub(tourney_id, 1, 4)]
   
-  stat <- stat[, .N, by = list(stat$tourney_name, stat$year)]
+  # Count occurrences grouped by tournament name and year
+  stat <- stat[, .N, by = .(tourney_name, year)]
   
-  stat <- setorder(stat, -N, na.last=FALSE)
+  # Order by descending count (N)
+  stat <- setorder(stat, -N, na.last = FALSE)
   
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-RetirementsInASlam <- function(){
-  stat <- db[grepl("RET", db$score) & tourney_level == 'G']
-  
-  ## count occurrences of won matches
-  stat <- stat[,.N, by=tourney_id]
-  
-  
-  print(stat)
-  
-  officialName <- unique(db[,c('tourney_id', 'tourney_name')])
-  
-  stat <- merge(officialName, stat, by="tourney_id")
-  
-  ## order by decreasing age
-  #same <- same[order(-N)]
-  
-  # #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-  
-  stat <- setorder(stat, N, na.last=FALSE)
-  
+  # Return the final table
+  return(stat)
 }
 
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-AgeWhoWillMakeARound <- function(){
+AllTournamentsRollByPlayer <- function() {
   
-  db <- removeTeamEvents(db)
-  
-  db <- db[round == 'F']
-  
-  #db <- db[winner_ioc == 'ITA']
-  
-  stat <- getanID(db, "winner_name")
-  
-  # #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 , 4)
-  
-  stat <- stat[.id == 1]
-  
-  stat$winner_age <- substr(stat$winner_age, 0, 5)
-  
-  stat$winner_age <- gsub('\\.', ',', stat$winner_age) 
-  
-  ## order by decreasing
-  setorder(stat, winner_age, na.last = FALSE)
-  
-  stat <-
-    stat[, c(
-      "tourney_name",
-      "year",
-      "surface",
-      "round",
-      "winner_name",
-      "winner_age",
-      ".id",
-      "score"
-    )]
-  stat <- stat[,c("tourney_name", "year", "winner_name", "winner_age")]
-  
-  print(stat)
-  
-  res <- db[round == 'F' & tourney_level == 'G']
-  res$year <- stringr::str_sub(res$tourney_id, 0 ,4)
-  res <- res[,c("winner_name")]
-  
-  print(res)
-  
-  stat <- match_df(stat, res)
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-AllTournamentsRoll <- function(){
-  
+  # Define the player of interest
   player <- 'Rafael Nadal'
   
-  #Big tournaments
-  #db <- db[tourney_level == 'G' | tourney_level == 'M' | tourney_level == 'F']
-  
-  #db <- db[tourney_level == 'G']
-  
+  # Remove team events from the database using an external function
   db <- removeTeamEvents(db)
   
+  # Filter the database to keep only matches where the player was winner or loser
   db <- db[winner_name == player | loser_name == player]
   
-  ## only select matches of a tournament
+  # Modify 'tourney_id' by removing the initial part up to the first hyphen
+  # This likely normalizes the tournament ID
   db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
   
+  # Keep only distinct rows by 'tourney_id', keeping all columns from the first occurrence
   db <- distinct(db, tourney_id, .keep_all = TRUE)
   
+  # Print the filtered dataset for inspection
   print(db)
   
+  # Extract unique tournament IDs as a vector
   tour <- dplyr::pull(db, tourney_id)
   
+  # Extract corresponding tournament names as a vector
   tourney_name <- dplyr::pull(db, tourney_name)
   
-  stat <-  PercentageTour(tour[1])
-  
+  # Calculate statistics for the first tournament and filter for the player
+  stat <- PercentageTour(tour[1])
   stat <- stat[name == player]
   
-  for (i in 2:(length(tour))) {
-    
-    stat2 <-  PercentageTour(tour[i])
-    
-    stat2 <- stat2[name == player]
-    
-    stat <- rbind(stat, stat2, fill = TRUE)
+  # Loop through remaining tournaments, calculate stats, filter for the player,
+  # and append the results directly to 'stat' without using an intermediate variable
+  for (i in 2:length(tour)) {
+    stat <- rbind(stat, PercentageTour(tour[i])[name == player], fill = TRUE)
   }
-
+  
+  # Add tournament names as a new column right after the "name" column
   stat <- add_column(stat, tourney_name, .after = "name")
   
-  stat <- setorder(stat, -percentage, na.last=FALSE)
+  # Order the dataframe by 'percentage' in descending order, placing NA values last
+  stat <- setorder(stat, -percentage, na.last = FALSE)
   
+  # Print the final statistics table
   print(stat)
   
 }
 
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-ConsecutiveWon1stSetWins <- function(){
-  
-  res <- WinsOverall()
-  
-  res <- res[N > 1200]
-  
-  players <- dplyr::pull(res, winner_name)
-  
-  stat <-  won1stWins(players[1])
-  
-  for (i in 2:(length(players))) {
-    
-    print(players[i])
-    
-    stat2 <-  won1stWins(players[i])
-    
-    stat <- rbind(stat, stat2)
-  }
-  stat <- as.data.frame(stat)
-  
-  ## order by decreasing
-  setorder(stat, -N, na.last=FALSE)
-  
-  # #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-  
-  stat <- stat[,c("name", "N", "tourney_name", "year", "round", "winner_name", "loser_name", "score")]
-  
-}
+
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-won1stWins <- function(player){
+Beat123intheSametournament <- function() {
   
-  wins <- db[(winner_name == player | loser_name == player)]
-  
-  ## drop walkover matches (not countable)
-  wins <- wins[!wins$score=="W/O" & !wins$score=="DEF" & !str_detect(wins$score, "WEA") & !str_detect(wins$score, "ABN") & !str_detect(wins$score, "NA")]
-  
-  library(foreach)
-  foreach(i = 1:length(wins$score)) %do%
-    {
-      #split to catch the sets
-      set <- strsplit(wins$score[i], " ")
-      
-      foreach(k = 1:length(set)) %do%
-        {
-          score <- strsplit(set[[k]], "-")
-        }
-      
-      #sub for tiebreaks
-      score[[1]][2] <-  sub("\\(.*", "", score[[1]][2])
-      
-      score[[1]][2][is.na(score[[1]][2])] <- 0
-      
-      if (score[[1]][1] > score[[1]][2])
-        wins$won1st[i] <- '1st win'
-      else
-        wins$won1st[i] <- 'no 1st win'
-    }
-  
-  wins <- wins[(won1st == '1st win' & winner_name == player) | (won1st == 'no 1st win' & loser_name == player)]
-  
-  wins1setWon <-  Streaks(wins, win=TRUE, cutoff=2, breaks=FALSE)
-  
-  wins1setWon$info <- head(wins1setWon$info, 1)
-  
-  wins1setWon <- cbind(wins1setWon$info, wins1setWon$matches[[1]])
-  
-  wins1setWonfirst <- head(wins1setWon, 1)
-  
-  wins1setWonlast <- tail(wins1setWon, 1)
-  
-  wins1setWon <- rbind(wins1setWonfirst, wins1setWonlast)
-  
-  print(wins1setWon)
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-Beat123intheSametournament <- function(){
-  
+  # Filter the database to keep only matches where the loser had a ranking better than 3 (i.e., rank < 4)
   stat <- db[loser_rank < 4]
   
+  # Load dplyr package (for data manipulation functions like right_join)
   require(dplyr)
+  
+  # Count the number of matches grouped by tournament ID and winner's name
+  # This creates a summary table with columns: tourney_id, winner_name, and count (N)
   stat <- stat[, .N, by = list(tourney_id, winner_name)]
   
+  # Filter to keep only cases where the winner beat exactly 3 such top-ranked opponents in the tournament
   stat <- stat[N == 3]
   
-  officialName <- unique(db[,c('tourney_id', 'tourney_name')])
-  stat <- right_join(officialName, stat, by="tourney_id")
+  # Extract unique pairs of tournament ID and tournament name from the database
+  officialName <- unique(db[, c('tourney_id', 'tourney_name')])
   
-  # #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
+  # Join the tournament names with the stats dataframe using a right join on 'tourney_id'
+  # This ensures all tournaments in 'stat' have their names attached
+  stat <- right_join(officialName, stat, by = "tourney_id")
   
-  stat <- stat[,c("tourney_name", "year", "winner_name", "N")]
+  # Extract the year from 'tourney_id' by taking the first 4 characters (assuming tourney_id starts with year)
+  stat$year <- stringr::str_sub(stat$tourney_id, 0 , 4)
+  
+  # Select only relevant columns: tournament name, year, and winner's name
+  stat <- stat[, c("tourney_name", "year", "winner_name")]
 }
 
 
+
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-OldestPlayerstoWin1stTitle <- function(){
-  
-  #Remove or add team events matches
+OldestPlayerstoWin1stTitle <- function() {
+  # Remove or add team event matches from the database using an external function
   db <- removeTeamEvents(db)
   
+  # Filter the database to include only final round matches ('F' for final)
   stat <- db[round == 'F']
   
+  # Get an ID per winner_name to identify their order of wins (assumed function 'getanID' does this)
   stat <- getanID(stat, "winner_name")
   
+  # Keep only the first win for each winner (where .id == 1)
   stat <- stat[.id == 1]
   
-  #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
+  # Extract the year from the tournament ID (assuming first 4 characters represent the year)
+  stat$year <- stringr::str_sub(stat$tourney_id, 0 , 4)
   
-  ## order by decreasing
-  setorder(stat, -winner_age, na.last=FALSE)
+  # Order the data by decreasing winner age, putting NA values last
+  setorder(stat, -winner_age, na.last = FALSE)
   
+  # Clean up the 'winner_age' column:
+  # Take only the first 5 characters (probably to limit decimals or format)
   stat$winner_age <- substr(stat$winner_age, 0, 5)
-  stat$winner_age <- suppressWarnings(as.numeric(str_replace_all(stat$winner_age,pattern=',',replacement='.')))
   
-  stat <- stat[,c("tourney_name", "year", "winner_name", "winner_age")]
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-YoungestToWinAMatchinSlams <- function(){
+  # Replace commas with dots to ensure proper numeric conversion,
+  # suppressing warnings that may arise from coercion
+  stat$winner_age <-
+    suppressWarnings(as.numeric(
+      str_replace_all(
+        stat$winner_age,
+        pattern = ',',
+        replacement = '.'
+      )
+    ))
   
-  stat <- db[tourney_level == 'G']
+  # Apply additional formatting to 'winner_age' (assumed external function)
+  stat <- FormatWinnerAge(stat)
   
-  #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-  
-  ## order by decreasing
-  setorder(stat, winner_age, na.last=FALSE)
-  
-  stat[is.na(stat$winner_age)] <- 0
-  
-  stat <- getanID(stat, "winner_name")
-  
-  stat <- stat[.id == 1]
-  
-  stat$dec <- stat$winner_age - floor(stat$winner_age)
-  
-  stat$dec <- stat$dec * 365.25
-  
-  stat$winner_age <- as.integer(stat$winner_age)
-  
-  stat$dec <- as.integer(stat$dec)
-  
-  stat$winner_age <- paste(stat$winner_age, "y", " ", stat$dec, "d", sep = "")
-  
-  stat <- stat[,c("tourney_name", "year", "round", "winner_name", "winner_age", "loser_name", "score")]
-  
-  print(stat)
-}
-
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-consecutiveSetsWon <- function(){
-
-#db <- read.csv("Sets.csv", header = TRUE, sep = ',', fill = TRUE)
-  
-player <- 'Rafael Nadal'
-
-#stat <- db[tourney_level == 'G']
-
-stat <- db[surface == 'Clay']
-
-stat <- stat[winner_name == player | loser_name == player]
-
-## only select matches of a tournament
-#db$tourney_id <- sub("^[^-]*", "", db$tourney_id)
-
-#db <- db[tourney_id == '-580']
-
-stat <- stat[!stat$score=="W/O" & !stat$score=="DEF" & !stat$score=="(ABN)" & !str_detect(stat$score, "WEA")]
-
-stat$score <- gsub('RET', '', stat$score)
-
-#split to catch the sets
-stat$set <- strsplit(stat$score, " ")
-
-#extract year from tourney_date
-stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-
-out2 <- NULL
-
-stat <- stat[,c("tourney_name", "year", "winner_name", "loser_name", "set", "score")]
-
-print(stat)
-
-library(foreach)
-foreach(i = 1:length(stat$set)) %do%
-  {
-    print(stat$year[i])
-
-    score <- strsplit(stat$set[[i]], "-")
-
-    #sub for tiebreaks
-    if(str_detect(score[[1]][2], "\\)"))
-    score[[1]][2] <-  sub("\\(.*", "", score[[1]][2])
-
-    score[[1]][2][is.na(score[[1]][2])] <- 0
-
-    winner <-stat$winner_name[i]
-    loser <- stat$loser_name[i]
-
-    #count lost games
-    foreach(j = 1:length(score)) %do%
-      {
-        if(score[[j]][2] > score[[j]][1]){
-          stat$loser_name[i] <- winner
-          stat$winner_name[i] <- loser
-        }
-
-        out2 <- rbind(out2, stat[i])
-
-        #record <- stat[i][,c("winner_name", "loser_name")]
-        ##write.table(record, file = "Sets.csv", append=TRUE, na="", quote=F, row.names = FALSE, col.names = FALSE, sep = ',')
-        
-        stat$winner_name[i] <- winner
-        stat$loser_name[i] <- loser
-      }
-  }
-
-#out2 <- out2[,c("winner_name", "loser_name")]
-
-winsStreak <-  Streaks(out2, win=TRUE, cutoff=1, breaks=TRUE)
-
-print(winsStreak$info)
-
-info <- head(winsStreak$info, 19)
-
-print(winsStreak$matches[[1]])
-
-matches <- winsStreak$matches[[1]]
-winsStreakfirst <- head(matches, 1)
-winsStreaklast <- tail(matches, 1)
-matches <- rbind(winsStreakfirst, winsStreaklast)
-streak <- cbind(info[1,], matches)
-
-for(i in 2:19){
-  
-print(info[i,])
-  
-print(winsStreak$matches[[i]])
-
-matches <- winsStreak$matches[[i]]
-winsStreakfirst <- head(matches, 1)
-winsStreaklast <- tail(matches, 1)
-matches <- rbind(winsStreakfirst, winsStreaklast)
-streak2 <- cbind(info[i,], matches)
-
-streak <- rbind(streak, streak2)
-}
-
-print(streak)
-# winsStreakfirst <- head(winsStreak, 1)
-# winsStreaklast <- tail(winsStreak, 1)
-# winsStreak <- rbind(winsStreakfirst, winsStreaklast)
-
+  # Select and return only relevant columns: tournament name, year, winner name, and winner age
+  stat <- stat[, c("tourney_name", "year", "winner_name", "winner_age")]
 }
 
 
 
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
 SameNation4Semifinalists <- function() {
-
-  #Remove or add team events matches
+  
+  # Remove team events matches from the database using an external function
   db <- removeTeamEvents(db)
   
-  #db$winner_rank <- as.integer(db$winner_rank)
-  #db$loser_rank <- as.integer(db$loser_rank)
-  
+  # Filter database for quarterfinal matches only
   stat <- db[round == 'QF']
   
-  stat <- with(stat, aggregate(list(count = winner_ioc), list(tourney_id = tourney_id, winner_ioc=winner_ioc), length))
+  # Aggregate count of winners by tournament and their country code (winner_ioc)
+  # This counts how many quarterfinal winners belong to each country in each tournament
+  stat <- with(stat, aggregate(
+    list(count = winner_ioc),
+    list(tourney_id = tourney_id, winner_ioc = winner_ioc),
+    length
+  ))
   
+  # Extract quarterfinal matches again to get official tournament info
   res <- db[round == 'QF']
+  
+  # Get unique tournament info: tournament id, name, date, and winner name
   officialName <- unique(res[, c('tourney_id', 'tourney_name', 'tourney_date', 'winner_name')])
   
+  # Join tournament info with aggregated count data on 'tourney_id'
   stat <- left_join(officialName, stat, by = "tourney_id")
   
-  #stat <- distinct(stat, tourney_id)
-  
-  #stat <- getanID(stat, "winner_name")
-  
-  #stat <- stat[.id == 1]
-  
-  ## get rid of NAs, have 0 instead
+  # Replace NA counts with 0 to avoid issues in filtering
   stat[is.na(stat)] <- 0
   
+  # Convert counts to integer type
   stat$count <- as.integer(stat$count)
   
+  # Filter to keep only tournaments where count equals 4,
+  # i.e., all four quarterfinal winners are from the same nation
   stat <- filter(stat, count == '4')
   
-  stat <- stat[!duplicated(stat$tourney_id),]
+  # Remove duplicated tournament rows (in case of multiple countries per tournament)
+  stat <- stat[!duplicated(stat$tourney_id), ]
   
-  # #extract year from tourney_date
+  # Extract year from tournament ID (assuming first 4 characters represent the year)
   stat$year <- stringr::str_sub(stat$tourney_id, 0 , 4)
   
-  stat <- stat[,c("tourney_name", "year", "winner_ioc")]
+  # Select and return only the relevant columns: tournament name, year, and country code (winner_ioc)
+  stat <- stat[, c("tourney_name", "year", "winner_ioc")]
   
 }
 
 
+
 #\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-Top10inATournament <- function(){
+library(data.table)
+library(stringr)
+
+Top10inATournament <- function() {
   
-  stat <- db[tourney_level == 'M']
+  db[, winner_rank := as.integer(winner_rank)]
+  db[, loser_rank := as.integer(loser_rank)]
   
-  winners <- stat[winner_rank < 11]
+  stat <- db[tourney_level == 'A']
   
-  winners <- unique(winners[, c('winner_rank', 'tourney_id')])
+  winners <- stat[winner_rank < 11, .(rank = winner_rank, tourney_id)]
+  winners <- unique(winners)
   
-  losers <- stat[loser_rank < 11]
+  losers <- stat[loser_rank < 11, .(rank = loser_rank, tourney_id)]
+  losers <- unique(losers)
   
-  losers <- unique(losers[, c('loser_rank', 'tourney_id')])
+  # Combine winners and losers
+  stat <- rbindlist(list(winners, losers), fill = TRUE)
+  stat <- unique(stat, by = c('rank', 'tourney_id'))
   
-  names(winners)[1] <- "rank"
-  names(losers)[1] <- "rank"
+  # Count number of top 10 players per tournament
+  stat <- stat[, .N, by = tourney_id]
   
-  stat <- rbind(winners, losers, by = c("tourney_id"), fill = TRUE)
+  # Get tournament official names and winners
+  res <- db[round == 'F' & tourney_level == 'A']
+  officialName <- unique(res[, .(tourney_id, tourney_name, winner_name)])
   
-  stat <- unique(stat[,c('rank', 'tourney_id')])
+  # Join official names with counts
+  stat <- officialName[stat, on = "tourney_id"]
+  stat[is.na(N), N := 0]
   
-  stat <- stat[, .N, by = list(tourney_id)]
+  # Order by decreasing number of top 10 players
+  setorder(stat, -N)
   
+  # Extract year from tourney_id (first 4 chars)
+  stat[, year := str_sub(tourney_id, 1, 4)]
   
-  res <- db[round == 'F' & tourney_level == 'M']
-  officialName <-
-    unique(res[, c('tourney_id', 'tourney_name', 'winner_name')])
+  # Select relevant columns
+  stat <- stat[, .(tourney_name, year, N)]
   
-  stat <- join(officialName, stat, by = "tourney_id")
-  
-  ## order by decreasing
-  setorder(stat, N, na.last=FALSE)
-  
-  #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-  
-  stat <- stat[,c("tourney_name", "year", "N")]
+  return(stat)
 }
 
 
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-RoundinCategoryWithNoFormerChampions <- function() {
+AllATPWinsBySurface <- function() {
   
-  #Select all Masters 1000 tournaments
-  db <- db[tourney_level == 'M']
+  # Overall wins
+  stat <- WinsOverall()
   
-  #Select id from tournaments
-  tour <- unique(dplyr::pull(db, tourney_id))
+  # Wins by surface
+  surfaces <- c("Hard", "Clay", "Grass", "Carpet")
+  stats_surface <- lapply(surfaces, winsSurface)
+  names(stats_surface) <- surfaces
   
-  #1st former champion
-  stat <-  unique(db[tourney_id == tour[1] & round == 'F'])
-  formerChampions <- unique(stat[, c('winner_name')])
+  # Combine all data
+  coll <- stat
+  for (surface in surfaces) {
+    coll <- left_join(coll, stats_surface[[surface]], by = "winner_name")
+  }
   
-  #print(stat)
+  colnames(coll) <- c("player", "Overall", "Hard", "Clay", "Grass", "carpet")
   
-  #print(formerChampions)
-  
-  #round with no former champions
-  stat2 <- db[tourney_id == tour[2] & round == 'QF']
-  
-  #print(stat2)
-  
-  roundyNoFormerChampions <- subset(stat2, !(stat2$winner_name  %in% formerChampions$winner_name))
-  
-  #print(roundyNoFormerChampions)
-  
-  
-  for (i in 2:length((tour))) {
+  return(as.data.frame(coll))
+}
 
-    stat <-  unique(db[tourney_id == tour[i] & round == 'F'])
-    formerChampions2 <- unique(stat[, c('winner_name')])
-    formerChampions <-  rbind(formerChampions, formerChampions2, fill = TRUE)
+AllRivalsForAPlayer <- function() {
+  
+  # Filter out matches with special scores
+  db_filtered <- db[!score %in% c("W/O", "DEF", "ABN")]
+  
+  # Select matches involving Rafael Nadal
+  stat <- db_filtered[winner_name == 'Rafael Nadal' | loser_name == 'Rafael Nadal']
+  
+  # Extract winners and losers with their countries
+  winners <- unique(stat[, .(Player = winner_name, Flag = winner_ioc)])
+  losers <- unique(stat[, .(Player = loser_name, Flag = loser_ioc)])
+  
+  # Combine and get unique rivals
+  rivals <- unique(rbindlist(list(winners, losers)))
+  
+  # Filter only players from Great Britain (GBR)
+  rivals <- rivals[Flag == 'GBR']
+  
+  # Order alphabetically by Player name
+  setorder(rivals, Player)
+  
+  return(rivals)
+}
+
+
+
+FormerSlamChampionsRoundVS <- function() {
+  # Define the round we're interested in (Finals)
+  round_to_search <- 'F'
+  
+  # Filter only Grand Slam matches
+  db <- db[tourney_level == 'G']
+  
+  # Get unique tournament IDs in order
+  tournament_ids <- unique(db$tourney_id)
+  
+  # Initialize an empty list of former champions
+  former_champions <- character()
+  
+  # Initialize result container
+  results <- data.table()
+  
+  # Loop through tournaments except the last one
+  for (i in seq_len(length(tournament_ids) - 1)) {
+    current_id <- tournament_ids[i]
+    next_id <- tournament_ids[i + 1]
     
-    #round with no former champions
-    j <- i + 1
-    stat2 <- db[tourney_id == tour[j] & round == 'QF']
-    roundyNoFormerChampions2 <- subset(stat2, !(stat2$winner_name  %in% formerChampions$winner_name))
+    # Get winner(s) from final of current tournament
+    final_match <- db[tourney_id == current_id & round == 'F', winner_name]
+    former_champions <- unique(c(former_champions, final_match))
     
-    roundyNoFormerChampions <-  rbind(roundyNoFormerChampions2, roundyNoFormerChampions, fill = TRUE)
+    # Get matches from next tournament
+    next_tournament_matches <- db[tourney_id == next_id]
+    
+    # Filter matches where both players are former champions
+    champ_vs_champ <- next_tournament_matches[
+      winner_name %in% former_champions & loser_name %in% former_champions
+    ]
+    
+    # Collect the results
+    results <- rbind(results, champ_vs_champ, fill = TRUE)
+  }
+  
+  # Keep only matches from the desired round (Finals)
+  results <- results[round == round_to_search]
+  
+  # Extract year from tourney_id
+  results[, year := substr(tourney_id, 1, 4)]
+  
+  # Keep only relevant columns
+  results <- results[, .(
+    tourney_name, year, surface, round,
+    winner_name, loser_name, score
+  )]
+  
+  return(results)
+}
+
+
+
+
+SlamsOnCourt <- function() {
+  db <- db[tourney_level == 'G']
+  tournaments <- unique(db$tourney_id)
+  
+  slam_counts <- list()
+  former_champions <- character()
+  results <- data.table()
+  
+  for (i in seq_len(length(tournaments) - 1)) {
+    current_id <- tournaments[i]
+    next_id <- tournaments[i + 1]
+    
+    final <- db[tourney_id == current_id & round == 'F']
+    winner <- unique(final$winner_name)
+    
+    if (length(winner) == 1 && !is.na(winner)) {
+      if (is.null(slam_counts[[winner]])) {
+        slam_counts[[winner]] <- 1
+      } else {
+        slam_counts[[winner]] <- slam_counts[[winner]] + 1
+      }
+      former_champions <- unique(c(former_champions, winner))
+    }
+    
+    matches <- db[tourney_id == next_id]
+    
+    champ_matches <- matches[
+      winner_name %in% former_champions &
+        loser_name %in% former_champions
+    ]
+    
+    if (nrow(champ_matches) > 0) {
+      # Explicit numeric conversion of title counts
+      champ_matches[, winner_slam_count := as.numeric(sapply(winner_name, function(x) slam_counts[[x]]))]
+      champ_matches[, loser_slam_count := as.numeric(sapply(loser_name, function(x) slam_counts[[x]]))]
+      champ_matches[, total_slams := winner_slam_count + loser_slam_count]
       
+      results <- rbind(results, champ_matches, fill = TRUE)
+    }
   }
-  #extract year from tourney_date
-  roundyNoFormerChampions$year <- stringr::str_sub(roundyNoFormerChampions$tourney_id, 0 ,4)
   
-  roundyNoFormerChampions <- roundyNoFormerChampions[,c("tourney_name", "year", "round", "winner_name", "loser_name", "score")]
+  results[, year := substr(tourney_id, 1, 4)]
   
-  require(dplyr)
-  roundyNoFormerChampions<- roundyNoFormerChampions %>% 
-    group_by(tourney_name, year) %>%
-    tally()
+  results <- results[, .(
+    tourney_name,
+    year,
+    surface,
+    round,
+    winner_name,
+    winner_slam_count,
+    loser_name,
+    loser_slam_count,
+    total_slams,
+    score
+  )]
   
-  ## order by decreasing
-  setorder(roundyNoFormerChampions, -n, na.last=FALSE)
-  
-  
-  print(roundyNoFormerChampions)
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-TournamentsPlayedToReachARound <- function(){
-  
-  turn <- 'F'
-  
-  category <- 'M'
-  
-  stat <- db[tourney_level == category & round == turn]
-
-  players <- unique(dplyr::pull(stat, winner_name))
-  
-  print(players[1])
-  
-  stat <- db[winner_name == players[1] & tourney_level == category & round == turn]
-  stat <- head(stat, 1)
-  
-  stat2 <- db[(winner_name == players[1] | loser_name == players[1]) & tourney_level == category]
-  
-  stat2$loser_name <- players[1]
-    
-  stat2 <- unique(stat2[, c('tourney_id', 'loser_name')])
-  
-  stat2 <- getanID(stat2, "loser_name")
-  
-  toreach <- subset(stat2, (stat2$tourney_id  %in% stat$tourney_id))
-  
-  print(toreach)
-  
-  
-  for (i in 2:length((players))) {
-
-  print(players[i])
-
-    stat <- db[winner_name == players[i] & tourney_level == category & round == turn]
-    stat <- head(stat, 1)
-
-    stat2 <- db[(winner_name == players[i] | loser_name == players[i]) & tourney_level == category]
-
-    stat2$loser_name <- players[i]
-    
-    stat2 <- unique(stat2[, c('tourney_id', 'loser_name')])
-
-    stat2 <- getanID(stat2, "loser_name")
-
-    toreach2 <- subset(stat2, (stat2$tourney_id %in% stat$tourney_id))
-    
-    print(toreach2)
-
-    toreach <- rbind(toreach2, toreach, fill = TRUE)
-
-  }
-
-  res <- db[round == 'F' & tourney_level == category]
-  officialName <- unique(res[, c('tourney_id', 'tourney_name')])
-
-  toreach <- right_join(officialName, toreach, by = "tourney_id")
-
-  #extract year from tourney_date
-  toreach$year <- stringr::str_sub(toreach$tourney_id, 0 ,4)
-
-  toreach <- toreach[,c("loser_name", "tourney_name", "year", ".id")]
-
-  ## order by decreasing
-  setorder(toreach, .id, na.last=FALSE)
-
-  #print(toreach)
+  return(results)
 }
 
 
 
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-####Find total breaks in a match
-Totalbreaks <- function(){
+
+
+RoundatDebut <- function() {
+  library(data.table)
+  library(dplyr)
+  library(stringr)
+  
+  turn <- 'SF'
+  tournament <- 'Australian Open'
+  
+  db <- db[tourney_name == tournament]
+  
+  id <- rownames(db)
+  stat <- cbind(id = id, db)
+  stat$id <- as.integer(stat$id)
+  
+  # Prepare player match records
+  wins <- stat[, c("id", "tourney_id", "tourney_name", "round", "winner_name", "score")]
+  losses <- stat[, c("id", "tourney_id", "tourney_name", "round", "loser_name", "score")]
+  
+  wins$WL <- 'W'
+  losses$WL <- 'L'
+  
+  names(wins)[5] <- names(losses)[5] <- "Player"
+  
+  stat <- rbind(wins, losses)
+  setorder(stat, id, na.last = FALSE)
+  
+  # Track debut per player
+  stat <- getanID(stat, "Player")  # Adds .id
+  debut <- stat[.id == 1, .(tourney_id, tourney_name, Player)]
+  
+  # Find all semifinal players
+  round_matches <- db[round == turn]
+  
+  semifinal_winners <- round_matches[, .(tourney_id, tourney_name, Player = winner_name)]
+  semifinal_losers  <- round_matches[, .(tourney_id, tourney_name, Player = loser_name)]
+  round <- rbind(semifinal_winners, semifinal_losers)
+  
+  # Remove duplicates and track debut again
+  round <- unique(round)
+  round <- getanID(round, "Player")
+  round <- round[.id == 1, ]
+  
+  # Join debut and semifinal players
+  debut_in_SF <- inner_join(debut, round, by = c("tourney_id", "tourney_name", "Player"))
+  debut_in_SF$year <- str_sub(debut_in_SF$tourney_id, 1, 4)
+  
+  debut_in_SF <- debut_in_SF[, c("tourney_name", "year", "Player")]
+  
+  return(debut_in_SF)
+}
+
+
+
+
+TeenagerInARound <- function() {
+  
+  library(data.table)
+  library(dplyr)
+  library(stringr)
+  
+  tourney_to_search <- 'Wimbledon'
+  
+  round_to_search <- 'R16'
+  
+  # Filter matches at Wimbledon round R16
+  db_filtered <- db[tourney_name == tourney_to_search & round == round_to_search]
+  
+  age_limit <- 20
+  
+  # Unique teenage winners
+  wins <- db_filtered[winner_age < age_limit, .(tourney_id, player = winner_name)] %>% distinct()
+  
+  # Unique teenage losers
+  losses <- db_filtered[loser_age < age_limit, .(tourney_id, player = loser_name)] %>% distinct()
+  
+  # Combine winners and losers
+  res <- bind_rows(wins, losses) %>% distinct()
+  
+  # Count teenagers per tournament
+  same <- res[, .N, by = tourney_id]
+  
+  # Get tournament names
+  officialName <- unique(db[, .(tourney_id, tourney_name)])
+  
+  # Join names and counts
+  same <- merge(officialName, same, by = "tourney_id", all.x = TRUE)
+  
+  # Replace NA counts with 0
+  same$N[is.na(same$N)] <- 0
+  
+  # Extract year from tourney_id
+  same$year <- str_sub(same$tourney_id, 1, 4)
+  
+  # Filter tournaments with at least one teenage player in R16
+  same <- same[N > 0]
+  
+  # Select columns and order descending by count
+  same <- same[, .(tourney_name, year, N)][order(-N)]
+  
+  print(same)
+  
+  return(same)
+}
+
+
+library(data.table)
+
+Beat12ToWinSlam <- function(db) {
+  
+  # Ensure loser_rank is numeric
+  db[, loser_rank := as.integer(loser_rank)]
+  
+  # Get Slam final winners with year
+  finals <- db[round == 'F' & tourney_level == 'G', .(tourney_id, winner_name, year)]
+  
+  # All Grand Slam matches with loser ranked in top 2
+  topWins <- db[tourney_level == 'G' & loser_rank < 3,
+                .(tourney_id, tourney_name, winner_name, loser_rank, year)]
+  
+  # Join to get only matches where the Slam winner beat a top-2 player
+  topBeats <- topWins[finals, on = .(tourney_id, winner_name, year)]
+  
+  # Count how many top-2 players each winner beat in a Slam
+  result <- topBeats[, .(count = .N), by = .(tourney_name, winner_name, year)]
+  
+  # Sort by descending count
+  setorder(result, -count, na.last = FALSE)
+  
+  return(result)
+}
+
+
+FormerSlamChampionsinASlamDraw <- function() {
+  
+  roundToFind <- "R128"
+  
+  # Get all Slam tournaments with R128 draw
+  r128_matches <- db[tourney_level == "G" & round == roundToFind]
+  all_tourney_ids <- unique(r128_matches$tourney_id)
+  
+  # Get all former Slam champions (winners in any Slam final)
+  former_champions <- unique(db[round == "F" & tourney_level == "G", winner_name])
+  
+  # Prepare result list
+  results <- list()
+  
+  for (tid in all_tourney_ids) {
+    # Get all players in R128 (both winners and losers)
+    players <- db[tourney_id == tid & round == roundToFind & tourney_level == "G",
+                  .(Player = c(winner_name, loser_name))]
+    
+    players <- unique(players)
+    
+    # Filter former champions in the current draw
+    former_in_draw <- players[Player %in% former_champions]
+    
+    # Get tournament name and year
+    tinfo <- unique(db[tourney_id == tid, .(tourney_name, tourney_id)])
+    tinfo[, year := substr(tourney_id, 1, 4)]
+    
+    # Combine results
+    if (nrow(former_in_draw) > 0) {
+      former_in_draw[, `:=`(tourney_name = tinfo$tourney_name, year = tinfo$year)]
+      results[[length(results) + 1]] <- former_in_draw
+    }
+  }
+  
+  # Combine all into a single data.table
+  all_results <- rbindlist(results)
+  
+  # Count how many former champions were in each tournament draw
+  summary <- all_results[, .N, by = .(tourney_name, year)]
+  #setorder(summary, -N)
+  
+  return(summary)
+}
+
+SlammerLosingOpeningSet <- function() {
+  
+  # Filter finals
+  res <- db[round == 'F', .(tourney_id, winner_name)]
+  
+  # Filter Grand Slam level matches
+  stat <- db[tourney_level == 'G', .(tourney_id, winner_name, loser_name, round, score)]
+  
+  # Merge to keep only matches involving eventual winners of the finals
+  stat <- merge(stat, res, by = c("tourney_id", "winner_name"))
+  
+  # Keep first match played by the eventual winner (typically R128 or R64)
+  stat <- stat %>%
+    group_by(tourney_id) %>%
+    filter(row_number() == 1) %>%
+    ungroup()
+  
+  # Get tourney names
+  officialName <- unique(db[round == 'F', .(tourney_name, tourney_id)])
+  stat <- right_join(officialName, stat, by = "tourney_id")
+  
+  # Extract year
+  stat$year <- substr(stat$tourney_id, 1, 4)
+  
+  # Extract first set scores
+  games <- strsplit(stat$score, split = " ")
+  first_set_scores <- sapply(games, function(x) sub("\\(.*", "", x[1]))
+  
+  # Split into games won/lost
+  games_won <- as.integer(sub("-.*", "", first_set_scores))
+  games_lost <- as.integer(sub(".*-", "", first_set_scores))
+  
+  # Add to dataframe
+  stat$games_won <- games_won
+  stat$games_lost <- games_lost
+  
+  # Determine if the first set was lost
+  stat$set1stLost <- games_won < games_lost
+  
+  # Filter only where first set was lost
+  sets <- stat[stat$set1stLost == TRUE, .(
+    tourney_name, year, round, winner_name, loser_name, games_won, games_lost, score
+  )]
+  
+  print(sets)
+}
+
+
+
+SeasonsTitlesIn3DifferentSurfaces <- function() {
+  library(data.table)
+  library(stringr)
+  
+  # Convert to data.table if not already
+  db <- as.data.table(db)
+  
+  # Filter only final matches played on Grass, Clay, or Hard courts
+  stat <- db[round == 'F' & surface %in% c('Grass', 'Clay', 'Hard')]
+  
+  # Extract the year from the tournament ID (first 4 characters)
+  stat[, year := str_sub(tourney_id, 1, 4)]
+  
+  # Count the number of wins for each player per year on each surface
+  stat_summary <- stat[, .(n = .N), by = .(year, winner_name, surface)]
+  
+  # Calculate how many unique surfaces each player won on per year
+  surfaces_per_player <- stat_summary[, .(surfaces_won = uniqueN(surface)), by = .(year, winner_name)]
+  
+  # Keep only players who won on all three surfaces in the same year
+  result <- surfaces_per_player[surfaces_won == 3]
+  
+  # Order the results by winner name descending
+  setorder(result, -winner_name, na.last = FALSE)
+  
+  return(result)
+}
+
+
+AverageHeight <- function(stage) {
+  library(data.table)
+  library(stringr)
+  
+  # Filter rows based on stage:
+  # - 'W' means finals ('F')
+  # - '0' means no filtering on round
+  # - else filter by the given round
+  filtered <- if(stage == 'W') {
+    db[round == 'F']
+  } else if(stage == '0') {
+    db
+  } else {
+    db[round == stage]
+  }
+  
+  # Extract unique winner heights per tournament
+  winners <- unique(filtered[, .(tourney_id, height = as.integer(winner_ht))])
+  
+  # Extract unique loser heights if stage is not 'W'
+  if(stage != 'W') {
+    losers <- unique(filtered[, .(tourney_id, height = as.integer(loser_ht))])
+    # Combine winners and losers heights
+    heights <- unique(rbindlist(list(winners, losers)))
+  } else {
+    heights <- winners
+  }
+  
+  # Calculate average height per tournament
+  avg_height <- heights[, .(mean_height = mean(height, na.rm = TRUE)), by = tourney_id]
+  
+  # Add official tournament names from finals data
+  finals <- unique(db[round == 'F', .(tourney_id, tourney_name)])
+  avg_height <- merge(finals, avg_height, by = "tourney_id", all.x = TRUE)
+  
+  # Extract year from tournament ID (first 4 characters)
+  avg_height[, year := str_sub(tourney_id, 1, 4)]
+  
+  # Format mean_height to string with comma as decimal separator
+  avg_height[, mean_height := sprintf("%.2f", mean_height)]
+  avg_height[, mean_height := gsub("\\.", ",", mean_height)]
+  
+  # Order by mean height descending
+  setorder(avg_height, -mean_height)
+  
+  # Select relevant columns
+  result <- avg_height[, .(tourney_name, year, mean_height)]
+  
+  print(result)
+}
+
+
+DifferentFinalistsInM1000InASeason <- function() {
+  library(data.table)
+  library(stringr)
+  
+  # Filter semifinals ('SF') at Masters 1000 level ('M')
+  stat <- db[round == 'SF' & tourney_level == 'M']
+  
+  # Extract year from tournament ID (first 4 characters)
+  stat[, year := str_sub(tourney_id, 1, 4)]
+  
+  # Count unique winners per year in SF round
+  winners_per_year <- stat[, .N, by = .(year, winner_name)]
+  
+  # Count how many different winners appeared in SF per year
+  result <- winners_per_year[, .(different_finalists = .N), by = year]
+  
+  return(result)
+}
+
+MostWinsWithNoTitleInASeasons <- function() {
+  
+  # Ensure db is a data.table
+  db <- as.data.table(db)
+  
+  # Extract year from tournament ID
+  db[, year := str_sub(tourney_id, 1, 4)]
+  
+  # Get all players who won at least one final (i.e., won a title), per year
+  title_winners <- unique(db[round == 'F', .(year, winner_name)])
+  
+  # Remove walkovers, defaults, or incomplete matches
+  clean_matches <- db[
+    !score %in% c("W/O", "DEF") &
+      !str_detect(score, "WEA") &
+      !str_detect(score, "ABN")
+  ]
+  
+  # Filter only players who did NOT win a title that year
+  # Anti-join equivalent: keep (year, winner_name) not in title_winners
+  clean_matches <- clean_matches[!paste(year, winner_name) %in% paste(title_winners$year, title_winners$winner_name)]
+  
+  # Count match wins per player per year
+  result <- clean_matches[, .N, by = .(year, winner_name)]
+  
+  # Order by year, then by descending win count
+  setorder(result, -N)
+  
+  return(result)
+}
+
+
+BestPercentageInASeasonYearByYear <- function() {
+  library(data.table)
+  library(lubridate)
+  
+  years <- 1968:year(now())  # Years from Open Era to current
+  results <- list()          # Use list for faster accumulation
+  
+  for (i in years) {
+    cat("Processing year:", i, "\n")
+    
+    # Get win percentage stats for year i
+    stat <- PercentageYearByYear(i, db)
+    
+    if (nrow(stat) > 0) {
+      # Take top player and add year column
+      top_player <- head(stat, 1)
+      top_player$year <- i
+      
+      results[[length(results) + 1]] <- top_player
+    }
+  }
+  
+  # Combine all rows into one data.table
+  seasons <- rbindlist(results, fill = TRUE)
+  
+  # Optional: sort by year (ascending)
+  setorder(seasons, year)
+  
+  return(seasons)
+}
+
+
+
+OldestNo1SeedinSlams <- function(){
+  
+  #extract year from tourney_date
+  db$year <- stringr::str_sub(db$tourney_id, 0 ,4)
+  
+  winners <- db[winner_seed == '1' & tourney_level == 'G']
+  
+  losers <- db[loser_seed == '1' & tourney_level == 'G']
+  
+  winners <- unique(winners[, c('tourney_name', 'year', 'winner_name', 'winner_age')])
+  losers <- unique(losers[, c('tourney_name', 'year', 'loser_name', 'loser_age')])
+  
+  names(winners)[3] <- names(losers)[3] <- "player"
+  names(winners)[4] <- names(losers)[4] <- "age"
+  
+  stat <-  rbind(winners, losers, fill = TRUE)
+  
+  stat <- unique(stat[, c('tourney_name', 'year', 'player', 'age')])
+  
+  ## order by decreasing
+  setorder(stat, -age, na.last=FALSE)
+  
+  stat <- FormatAge(stat)
+}
+
+OverAgedInDraw <- function(age = 38) {
+  library(data.table)
+  library(stringr)
+  
+  # Filter matches from Wimbledon
+  stat <- db[tourney_name == "Wimbledon"]
+  
+  # Extract all years from tourney_id (assumes year is first 4 chars)
+  all_years <- unique(str_sub(stat$tourney_id, 1, 4))
+  
+  # Get over-aged winners
+  winners <- stat[winner_age > age, .(age = winner_age, player = winner_name, tourney_id)]
+  
+  # Get over-aged losers
+  losers <- stat[loser_age > age, .(age = loser_age, player = loser_name, tourney_id)]
+  
+  # Combine and deduplicate players per tournament
+  combined <- unique(rbind(winners, losers))
+  
+  # Count number of over-aged players per tournament
+  stat_count <- combined[, .N, by = .(tourney_id)]
+  
+  # Extract year from tourney_id
+  stat_count[, year := str_sub(tourney_id, 1, 4)]
+  
+  # Create data.table with all years (even if no over-aged players)
+  all_years_dt <- data.table(year = all_years)
+  
+  # Merge counts with all years to include years with zero counts
+  stat_complete <- merge(all_years_dt, stat_count[, .(year, N)], by = "year", all.x = TRUE)
+  
+  # Replace NA with zero (years with zero over-aged players)
+  stat_complete[is.na(N), N := 0]
+  
+  # Add tournament name column
+  stat_complete[, tourney_name := "Wimbledon"]
+  
+  # Sort by year ascending
+  setorder(stat_complete, year)
+  
+  # Return final summary
+  return(stat_complete[, .(tourney_name, year, N)])
+}
+
+
+
+SimpsonParadox <- function(){
   
   db[is.na(db)] <- 0
   
-  stat<- db
+  stat <- WinsOverall()
   
-  #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-  
-  stat <- stat[, totalbreakpoints:= (as.integer(stat$w_bpFaced) - as.integer(stat$w_bpSaved)) + (as.integer(stat$l_bpFaced) - as.integer(stat$l_bpSaved))]
-  
-  stat <- stat[totalbreakpoints > 16]
-  
-  ## order by decreasing
-  setorder(stat, -totalbreakpoints, na.last=FALSE)
-  
-  stat <- stat[,c("tourney_name", "year", "round", "winner_name", "loser_name", "score", "totalbreakpoints")]
-  
-  
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-WinningPercentageClayOnTotal <- function(){
-  
-  
-  stat <- winsSurface('Hard')
-  
-  stat2 <- WinsOverall()
-  
-  stat2 <- subset(stat2, N > 299)
-  
-  stat <- merge(stat, stat2, by = c("winner_name"))
-  
-  stat[is.na(stat)] <- 0
-  
-  res <- stat[, percentage:=N.x/N.y*100]
-  
-  res$percentage <- substr(res$percentage, 0, 5)
-  
-  res$percentage <- suppressWarnings(as.numeric(str_replace_all(res$percentage,pattern=',',replacement='.')))
-  
-  ## order by decreasing total matches
-  setorder(res, -percentage)
-  
-  res$percentage <- paste(res$percentage, "%")
-  
-  stat <- res
-}
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-TournamentWonByABig3WillAllInDraw <- function(){
-  
-  Nadal <- db[winner_name == 'Rafael Nadal' | loser_name == 'Rafael Nadal']
-  Nadal <- unique(Nadal[, c('tourney_id')])
-  
-  Djokovic <- db[winner_name == 'Novak Djokovic' | loser_name == 'Novak Djokovic']
-  Djokovic <- unique(Djokovic[, c('tourney_id')])
-  
-  Federer <- db[winner_name == 'Roger Federer' | loser_name == 'Roger Federer']
-  Federer <- unique(Federer[, c('tourney_id')])
-  
-  NadalAndDjokovic <- subset(Djokovic, (Djokovic$tourney_id  %in% Nadal$tourney_id))
-  
-  NadalAndDjokovicAndFederer <- subset(Federer, (Federer$tourney_id  %in% NadalAndDjokovic$tourney_id))
-  
-  
-  NadalSF <- db[winner_name == 'Rafael Nadal' & round == 'F']
-  NadalSF <- unique(NadalSF[, c('tourney_id')])
-  
-  DjokovicSF <- db[winner_name == 'Novak Djokovic' & round == 'F']
-  DjokovicSF <- unique(DjokovicSF[, c('tourney_id')])
-  
-  FedererSF <- db[winner_name == 'Roger Federer' & round == 'F']
-  FedererSF <- unique(FedererSF[, c('tourney_id')])
-  
-  NadalAndDjokovicAndFedererSF <- rbind(NadalSF, DjokovicSF, FedererSF)
-  NadalAndDjokovicAndFedererSF <- unique(NadalAndDjokovicAndFedererSF[, c('tourney_id')])
-  
-  
-  NoDjokovicNoNadalandFederer <- subset(NadalAndDjokovicAndFederer, (NadalAndDjokovicAndFederer$tourney_id  %in% NadalAndDjokovicAndFedererSF$tourney_id))
-  
-  res <- db[round == 'F']
-  officialName <- unique(res[, c('tourney_id', 'tourney_name')])
-  
-  toreach <- right_join(officialName, NoDjokovicNoNadalandFederer, by = "tourney_id")
-  
-  #extract year from tourney_date
-  toreach$year <- stringr::str_sub(toreach$tourney_id, 0 ,4)
-  
-  print(toreach)
-  
-  res <- db[round == 'F']
-  officialName <- unique(res[, c('tourney_id', 'winner_name')])
-  
-  toreach <- right_join(officialName, toreach, by = "tourney_id")
-  
-  stat <- toreach[,c("tourney_name", "year" ,"winner_name")]
-  
-  ## order by decreasing
-  setorder(stat, winner_name, na.last=FALSE)
-  
-}
-
-
-TournamentsPlayedToReachNARound <- function(){
-  
-  db <- removeTeamEvents(db)
-  
-  turn <- 'F'
-  
-  N <- 20
-  
-  stat <- db[round == turn]
-  stat <- getanID(stat, "winner_name")
-  stat <- stat[.id == N]
+  stat <- stat[N > 2]
   
   players <- unique(dplyr::pull(stat, winner_name))
   
-  toreach <- NULL
+  rows <- NULL
   
-  for (i in 1:length((players))) {
-
-    print(players[i])
-
-    Onlyplayer <- stat[winner_name == players[i]]
+  for(i in 1:length(players)){
     
-    stat2 <- db[(winner_name == players[i] | loser_name == players[i])]
-    stat2$loser_name <- players[i]
-    stat2 <- unique(stat2[, c('tourney_id', 'loser_name')])
-    stat2 <- getanID(stat2, "loser_name")
+    player <- players[i]  
     
-    toreach2 <- subset(stat2, (stat2$tourney_id %in% Onlyplayer$tourney_id))
-
-    toreach <- rbind(toreach2, toreach, fill = TRUE)
-
+    print(player)
+    
+    stat <- db[loser_name == player]
+    
+    stat <-  stat[, w_points := as.integer(stat$w_1stWon) + as.integer(stat$w_2ndWon) +  (as.integer(stat$l_svpt) - as.integer(stat$l_1stWon) - as.integer(stat$l_2ndWon))]
+    
+    stat <-  stat[, l_points := as.integer(stat$l_1stWon) + as.integer(stat$l_2ndWon) +  (as.integer(stat$w_svpt) - as.integer(stat$w_1stWon) - as.integer(stat$w_2ndWon))]
+    
+    stat <-  stat[l_points > w_points]
+    
+    #print(stat)
+    
+    if(nrow(stat) > 1){
+      stat <- getanID(stat, "loser_name")
+      
+      stat2 <- stat[, c(".id", "loser_name")]
+      
+      #library(tidyverse)
+      stat2 <- stat2 %>%
+        slice_tail(n = 1)
+      
+      rows <- rbind(rows, stat2)
+      
+    }
+    
   }
+  stat <- rows  
   
-  res <- db[round == 'F']
-  officialName <- unique(res[, c('tourney_id', 'tourney_name')])
-  
-  toreach <- right_join(officialName, toreach, by = "tourney_id")
-  
-  #extract year from tourney_date
-  toreach$year <- stringr::str_sub(toreach$tourney_id, 0 ,4)
-  
-  toreach <- toreach[,c("loser_name", "tourney_name", "year", ".id")]
-  
-  ## order by decreasing
-  setorder(toreach, .id, na.last=FALSE)
-  
-  #print(toreach)
-}
-
-AllATPWinsBySurface <- function(){
-  
-  stat <-  WinsOverall()
-  
-  stat2 <- winsSurface('Hard')
-  
-  coll <- left_join(stat, stat2, by = "winner_name")
-  
-  stat3 <-  winsSurface('Grass')
-  
-  coll <- left_join(coll, stat3, by = "winner_name")
-  
-  stat4 <-  winsSurface('Carpet')
-  
-  coll <- left_join(coll, stat4, by = "winner_name")
-  
-  stat5 <-  winsSurface('Clay')
-  
-  coll <- left_join(coll, stat5, by = "winner_name")
-  
-}
-
-
-#\\\\\\\\\\\\\\\\\APPROVED\\\\\\\\\\\\\\\\\
-####Find total breaks in a match
-Totalbreakpoints <- function(){
-  
-  db[is.na(db)] <- 0
-  
-  stat<- db
-  
-  #stat <- subset(stat, best_of == 3)
-  
-  #extract year from tourney_date
-  stat$year <- stringr::str_sub(stat$tourney_id, 0 ,4)
-  
-  stat <- stat[, totalbreakpoints:= as.integer(stat$w_bpFaced) + as.integer(stat$l_bpFaced)]
-  
-  stat <- stat[totalbreakpoints > 16]
-  
-  ## order by decreasing
-  setorder(stat, -totalbreakpoints, na.last=FALSE)
-  
-  stat <- stat[,c("tourney_name", "year", "round", "winner_name", "loser_name", "score", "totalbreakpoints")]
-  
+  setorder(stat, -.id, na.last=FALSE)
 }
